@@ -1,4 +1,4 @@
-<?php // $Id$
+<?php // $Id: db.php 4791 2007-02-26 21:04:48Z merlinyoda $
 include_once 'check_upgrade.php';
 ?>
 <html>
@@ -10,7 +10,7 @@ include_once 'check_upgrade.php';
 <body>
 <h1><img src="dp.png" align="middle" alt="dotProject Logo"/>&nbsp;dotProject Installer</h1>
 <?php
-if ($_POST['mode'] == 'upgrade')
+if ( $_POST['mode'] == 'upgrade')
 	@include_once '../includes/config.php';
 else if (dPcheckUpgrade() == 'upgrade')
 	die('Security Check: dotProject seems to be already configured. Install aborted!');
@@ -29,7 +29,7 @@ else
             <td align="left">
 		<select name="dbtype" size="1" style="width:200px;" class="text">
 <?php
-   if (mb_strstr('WIN', mb_strtoupper(PHP_OS)) !== false) {
+   if (strstr('WIN', strtoupper(PHP_OS)) !== false) {
 ?>
 			<option value="access">MS Access</option>
 			<option value="ado">Generic ADO</option>

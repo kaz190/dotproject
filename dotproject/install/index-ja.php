@@ -32,36 +32,37 @@ $mode = dPcheckUpgrade();
 ?>
 <html>
 <head>
-	<title>dotProject Installer</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>dotProjectインストーラー</title>
 	<meta name="Description" content="dotProject Installer">
  	<link rel="stylesheet" type="text/css" href="../style/default/main.css">
 </head>
 <body>
-<h1><img src="dp.png" align="middle" alt="dotProject Logo"/>&nbsp;dotProject Installer</h1>
+<h1><img src="dp.png" align="middle" alt="dotProject Logo"/>&nbsp;dotProjectインストーラー&nbsp;<a href="./index.php"><small align="right"><small>[English]</small></small></a></h1>
 <table cellspacing="0" cellpadding="3" border="0" class="tbl" width="90%" align="center">
 <tr>
-        <td class="item" colspan="2">Welcome to the dotProject Installer! It will setup the database for dotProject and create an appropriate config file.
-	In some cases a manual installation cannot be avoided.
+		<td class="item" colspan="2">dotProjectインストーラーへようこそ！ ここではdotProjectのためのデータベースのセットアップとコンフィグファイルを作成します。
+
+	場合によっては、手動インストールが必要になります。
         </td>
 </tr>
 <tr>
         <td colspan="2">&nbsp;</td>
 </tr>
 <tr>
-        <td class="title" colspan="2">There is an initial Check for (minimal) Requirements appended down below for troubleshooting. At least a database connection
-	must be available and ../includes/config.php must be writable for the webserver!</td>
+        <td class="title" colspan="2">初めにトラブルシュートのために以下に追加される(最小限の)必須事項をチェックしてください。少なくともデータベースが利用可能で、ウェブサーバが../includes/config.phpを書き込めなければなりません。</td>
 </tr>
 <?php
 	if ($mode == 'upgrade') {
 ?>
 <tr>
-	<td class='title' colspan='2'><p class='error'>It would appear that you already have a dotProject installation. The installer will attempt to upgrade your system, however it is a good idea to take a full backup first!</p></td>
+	<td class='title' colspan='2'><p class='error'>dotProjectが既にインストールされているようです。インストーラーはシステムをアップグレードします。初めにシステムのバックアップをとることをオススメします。</p></td>
 <?php
 	}
 ?>
 <tr>
-        <td colspan="2" align="center"><br /><form action="db.php" method="post" name="form" id="form">
-	<input class="button" type="submit" name="next" value="Start <?php echo $mode == 'install' ? "Installation" : "Upgrade" ?>" />
+        <td colspan="2" align="center"><br /><form action="db-ja.php" method="post" name="form" id="form">
+	<input class="button" type="submit" name="next" value="<?php echo $mode == 'install' ? "インストール" : "アップグレード" ?>を開始" />
 	<input type="hidden" name="mode" value="<?php echo $mode; ?>" /></form></td>
 </tr>
 </table>
@@ -75,8 +76,9 @@ $cfgDir = '../includes';
 $cfgFile = '../includes/config.php';
 $filesDir = '../files';
 $locEnDir = '../locales/en';
+$locJaDir = '../locales/ja';
 $tmpDir = '../files/temp';
-include_once('vw_idx_check.php');
+include_once('vw_idx_check-ja.php');
 ?>
 </body>
 </html>

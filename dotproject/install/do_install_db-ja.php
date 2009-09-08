@@ -2,7 +2,7 @@
 
 include_once 'check_upgrade.php';
 if ($_POST['mode'] == 'install' && dPcheckUpgrade() == 'upgrade') {
- die('Security Check: dotProject seems to be already configured. Communication broken for Security Reasons!');
+ die('セキュリティチェック: dotProjectは既に構成されているようです。セキュリティ理由のため通信が壊れています！');
 }
 ######################################################################################################################
 
@@ -15,7 +15,7 @@ require_once DP_BASE_DIR.'/install/install.inc.php';
 $AppUI = new InstallerUI; // Fake AppUI class to appease the db_connect utilities.
 
 $dbMsg = '';
-$cFileMsg = 'Not Created';
+$cFileMsg = '作成されません';
 $dbErr = false;
 $cFileErr = false;
 
@@ -97,21 +97,23 @@ if ($dobackup){
   echo $sql;
 	exit;
  } else {
-  $backupMsg = 'ERROR: No Database Connection available! - Backup not performed!';
+  $backupMsg = 'エラー: 有効なデータベースコネクションがありません！ - バックアップは動作しません！';
  }
 }
 
 ?>
 <html>
 <head>
- <title>dotProject Installer</title>
+ <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+ <title>dotProjectインストーラー</title>
  <meta name="Description" content="dotProject Installer">
   <link rel="stylesheet" type="text/css" href="../style/default/main.css">
 </head>
 <body>
-<h1><img src="dp.png" align="middle" alt="dotProject Logo"/>&nbsp;dotProject Installer</h1>
+<h1><img src="dp.png" align="middle" alt="dotProject Logo"/>&nbsp;dotProjectインストーラー</h1>
 <table cellspacing="0" cellpadding="3" border="0" class="tbl" width="100%" align="left">
-<tr class='title'><td>Progress:</td></tr>
+<tr><td class="item" colspan="2" style="color:red">メモ: このページで表示される内容には、データベースが出力するメッセージを直接表示している場合があり、英語のままの可能性があります。</td></tr>
+<tr class='title'><td>進捗:</td></tr>
 <tr><td><pre>
 <?php
 
@@ -123,19 +125,19 @@ if ($dbc && ($do_db || $do_db_cfg)) {
  if ($mode == 'install') {
 
   if ($dbdrop) { 
-   dPmsg('Dropping previous database');
+   dPmsg('以前のデータベースを削除しています');
    $db->Execute('DROP DATABASE IF EXISTS `'.$dbname.'`'); 
 	 $existing_db = false;
   }
 
   if (! $existing_db) {
-		dPmsg('Creating new Database');
-		$db->Execute('CREATE DATABASE `'.$dbname.'`');
+		dPmsg('新しいデータベースを作成しています');
+		$db->Execute('CREATE DATABASE '.$dbname.' CHARACTER SET utf8');//K.Sen@Itsutsubashi-20080824
          $dbError = $db->ErrorNo();
  
          if ($dbError <> 0 && $dbError <> 1007) {
                  $dbErr = true;
-                $dbMsg .= 'A Database Error occurred. Database has not been created! The provided database details are probably not correct.<br>'.$db->ErrorMsg().'<br>';
+                $dbMsg .= 'データベースエラーが発生しました。データベースは作成されていません！提供されたデータベースの詳細はおそらく間違っています。<br>'.$db->ErrorMsg().'<br>';
 
          }
    }
@@ -147,7 +149,7 @@ if ($dbc && ($do_db || $do_db_cfg)) {
 
  $code_updated = '';
  if ($mode == 'upgrade') {
-  dPmsg('Applying database updates');
+  dPmsg('データベースのアップデートを適用します');
   $last_version = $db_version['code_version'];
   // Convert the code version to a version string.
   if ($last_version != $current_version) {
@@ -168,7 +170,7 @@ if ($dbc && ($do_db || $do_db_cfg)) {
     InstallLoadSql(DP_BASE_DIR.'/db/upgrade_latest.sql', $db_version['last_db_update']);
   }
  } else {
-  dPmsg('Installing database');
+  dPmsg('データベースインストール');
   InstallLoadSql(DP_BASE_DIR.'/db/dotproject.sql');
   // After all the updates, find the new version information.
   $new_version = InstallGetVersion($mode, $db);
@@ -179,12 +181,12 @@ if ($dbc && ($do_db || $do_db_cfg)) {
 				$dbError = $db->ErrorNo();
         if ($dbError <> 0 && $dbError <> 1007) {
   $dbErr = true;
-                $dbMsg .= 'A Database Error occurred. Database has probably not been populated completely!<br>'.$db->ErrorMsg().'<br>';
+                $dbMsg .= 'データベースエラーが発生しました。データベースはおそらく完全には作成されていません！<br>'.$db->ErrorMsg().'<br>';
         }
  if ($dbErr) {
-  $dbMsg = 'DB setup incomplete - the following errors occured:<br>'.$dbMsg;
+  $dbMsg = '不完全なデータベースセットアップ - 以下のエラーが発生しました:<br>'.$dbMsg;
  } else {
-  $dbMsg = 'Database successfully setup<br>';
+  $dbMsg = 'データベースを正しくセットアップしました<br>';
  }
 
  if ($mode == 'upgrade') {
@@ -195,13 +197,13 @@ if ($dbc && ($do_db || $do_db_cfg)) {
    include_once DP_BASE_DIR.'/db/upgrade_latest.php';
    $code_updated = dPupgrade($db_version['code_version'], $current_version, $db_version['last_code_update']);
   } else {
-		dPmsg('No data updates required');
+		dPmsg('データのアップデートは要求されていません');
 	}
  } else {
   include_once DP_BASE_DIR.'/db/upgrade_permissions.php'; // Always required on install.
  }
 
- dPmsg('Updating version information');
+ dPmsg('バージョン情報更新');
  // No matter what occurs we should update the database version in the dpversion table.
  if (empty($lastDBUpdate)) {
  	$lastDBUpdate = $code_updated;
@@ -215,19 +217,19 @@ if ($dbc && ($do_db || $do_db_cfg)) {
  $db->Execute($sql);
 
 } else {
-	$dbMsg = 'Not Created';
+	$dbMsg = '作成されません';
 	if (! $dbc) {
 		$dbErr=1;
-		$dbMsg .= '<br/>No Database Connection available! '  . ($db ? $db->ErrorMsg() : '');
+		$dbMsg .= '<br/>有効なデータベースコネクションがありません！ '  . ($db ? $db->ErrorMsg() : '');
 	}
 }
 
 // always create the config file content
 
- dPmsg('Creating config');
+ dPmsg('コンフィグファイル作成');
  $config = '<?php '."\n";
  $config .= 'if (!defined(\'DP_BASE_DIR\')) {'."\n";
- $config .= '	die(\'You should not access this file directly.\');'."\n";
+ $config .= '	die(\'このファイルに直接アクセスすることは出来ません。\');'."\n";
  $config .= '}'."\n";
  $config .= '### Copyright (c) 2004, The dotProject Development Team dotproject.net and sf.net/projects/dotproject ###'."\n";
  $config .= '### All rights reserved. Released under GPL License. For further Information see LICENSE ###'."\n";
@@ -250,10 +252,10 @@ if ($do_cfg || $do_db_cfg){
  if ( (is_writable('../includes/config.php')  || ! is_file('../includes/config.php') ) && ($fp = fopen('../includes/config.php', 'w'))) {
   fputs( $fp, $config, strlen( $config ) );
   fclose( $fp );
-  $cFileMsg = 'Config file written successfully'."\n";
+  $cFileMsg = 'コンフィグファイルの書き込みは成功しました'."\n";
  } else {
   $cFileErr = true;
-  $cFileMsg = 'Config file could not be written'."\n";
+  $cFileMsg = 'コンフィグファイルを書き込むことができませんでした'."\n";
  }
 }
 
@@ -263,30 +265,30 @@ if ($do_cfg || $do_db_cfg){
 </table><br/>
 <table cellspacing="0" cellpadding="3" border="0" class="tbl" width="100%" align="left">
         <tr>
-            <td class="title" valign="top">Database Installation Feedback:</td>
+            <td class="title" valign="top">データベースインストールフィードバック:</td>
      <td class="item"><b style="color:<?php echo $dbErr ? 'red' : 'green'; ?>"><?php echo $dbMsg; ?></b><?php if ($dbErr) { ?> <br />
-		   Please note that errors relating to dropping indexes during upgrades are <b>NORMAL</b> and do not indicate a problem.
+		   アップグレードの間のインデックスのドロップに関するエラーは<b>通常</b>問題を示さない点に注意してください。
 			 <?php } ?>
 			 </td>
          <tr>
   <tr>
-            <td class="title">Config File Creation Feedback:</td>
+            <td class="title">コンフィグファイル作成フィードバック:</td>
      <td class="item" align="left"><b style="color:<?php echo $cFileErr ? 'red' : 'green'; ?>"><?php echo $cFileMsg; ?></b></td>
   </tr>
 <?php if(($do_cfg || $do_db_cfg) && $cFileErr){ ?>
  <tr>
-     <td class="item" align="left" colspan="2">The following Content should go to ./includes/config.php. Create that text file manually and copy the following lines in by hand. Delete all empty lines and empty spaces after '?>' and save. This file should be readable by the webserver.</td>
+	 <td class="item" align="left" colspan="2">以下の内容は./includes/config.phpに書かなければなりません。テキストファイルを作成し、以下の内容をコピーしてください。「?>」以降のすべての空白と空行を削除して保存します。このファイルをウェブサーバによって読み込まれるようにしなければなりません。</td>
   </tr>
          <tr>
-            <td align="center" colspan="2"><textarea class="button" name="dbhost" cols="100" rows="20" title="Content of config.php for manual creation." /><?php echo $msg.$config; ?></textarea></td>
+            <td align="center" colspan="2"><textarea class="button" name="dbhost" cols="100" rows="20" title="config.phpを手動で作成するための内容" /><?php echo $msg.$config; ?></textarea></td>
          </tr>
 <?php } ?>
  <tr>
-     <td class="item" align="center" colspan="2"><br/><b><a href="<?php echo $baseUrl.'/index.php?m=system&a=systemconfig';?>">Login and Configure the dotProject System Environment</a></b></td>
+     <td class="item" align="center" colspan="2"><br/><b><a href="<?php echo $baseUrl.'/index.php?m=system&a=systemconfig';?>">ログインとdotProjectのシステム環境構成</a></b></td>
   </tr>
 <?php if ($mode == 'install') { ?>
 	<tr>
-		<td class="item" align="center" colspan="2"><p>The Administrator login has been set to <b>admin</b> with a password of <b>passwd</b>. It is a good idea to change this password when you first log in</p></td>
+		<td class="item" align="center" colspan="2"><p>管理者ログインはユーザー名: <b>admin</b> パスワード: <b>passwd</b> でログインできます。 ログイン後、パスワードを変更してください。</p></td>
 	</tr>
 <?php } ?>
         </table>
