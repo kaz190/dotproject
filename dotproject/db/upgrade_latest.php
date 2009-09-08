@@ -27,45 +27,46 @@ require_once DP_BASE_DIR.'/classes/permissions.class.php';
  * as they are not necessary.  ALL UPDATE CODE needs to be in upgrade_latest.php.
  * The individual SQL files are still required, however.
  */
-function dPupgrade($from_version, $to_version, $last_updated) {
+function dPupgrade($from_version, $to_version, $last_updated)
+{
 
-	$latest_update = '20090427'; // Set to the latest upgrade date.
+	$latest_update = '20080728'; // Set to the latest upgrade date.
 
 	if (empty($last_updated) || empty($from_version)) {
 		$last_updated = '00000000';
 	}
 
-	$perms =& new dPacl;
+	$perms = new dPacl;
 	
 	// Place the upgrade code here, depending on the last_updated date.
 	// DO NOT REMOVE PREVIOUS VERSION CODE!!!
 	switch ($last_updated) {
 		case '00000000':
 			$sql = 'SELECT project_id, project_departments, project_contacts FROM projects';
-			$projects = db_loadList($sql);
+			$projects = db_loadList( $sql );
 
 			//split out related departments and store them seperatly.
 			$sql = 'DELETE FROM project_departments';
-			db_exec($sql);
+			db_exec( $sql );
 			//split out related contacts and store them seperatly.
 			$sql = 'DELETE FROM project_contacts';
-			db_exec($sql);
+			db_exec( $sql );
 
-			foreach ($projects as $project) {
+			foreach ($projects as $project){
                 $p_id = (($project['project_id'])?$project['project_id']:'0');
 				$departments = explode(',',$project['project_departments']);
-				foreach ($departments as $department) {
+				foreach($departments as $department){
 					$sql = 'INSERT INTO project_departments (project_id, department_id) values ('.$p_id.', '.$department.')';
                     if ($p_id && $department) {
-                        db_exec($sql);
+                        db_exec( $sql );
                     }
 				}
 
 				$contacts = explode(',',$project['project_contacts']);
-				foreach ($contacts as $contact) {
+				foreach($contacts as $contact){
 					$sql = 'INSERT INTO project_contacts (project_id, contact_id) values ('.$p_id.', '.$contact.')';
                     if ($p_id && $contact) {
-                        db_exec($sql);
+                        db_exec( $sql );
                     }
 				}
 			}
@@ -75,35 +76,35 @@ function dPupgrade($from_version, $to_version, $last_updated) {
 			 **/
 
 			$sql = 'SELECT task_id, task_departments, task_contacts FROM tasks';
-			$tasks = db_loadList($sql);
+			$tasks = db_loadList( $sql );
 
 			//split out related departments and store them seperatly.
 			$sql = 'DELETE FROM task_departments';
-			db_exec($sql);
+			db_exec( $sql );
 			//split out related contacts and store them seperatly.
 			$sql = 'DELETE FROM task_contacts';
-			db_exec($sql);
+			db_exec( $sql );
 
-			foreach ($tasks as $task) {
+			foreach ($tasks as $task){
 				$departments = explode(',',$task['task_departments']);
-				foreach ($departments as $department) {
+				foreach($departments as $department){
 					if ($department) {
 						$sql = 'INSERT INTO task_departments (task_id, department_id) values ('.$task['task_id'].', '.$department.')';
-						db_exec($sql);
+						db_exec( $sql );
 					}
 				}
 
 				$contacts = explode(',',$task['task_contacts']);
-				foreach ($contacts as $contact) {
+				foreach($contacts as $contact){
 					if ($contact) {
 						$sql = 'INSERT INTO task_contacts (task_id, contact_id) values ('.$task['task_id'].', '.$contact.')';
-						db_exec($sql);
+						db_exec( $sql );
 					}
 				}
 			}
             
             $sql = 'ALTER TABLE `projects` ADD `project_active` TINYINT(4) DEFAULT 1';
-            db_exec($sql);
+            db_exec( $sql );
             
 			if (strcmp($from_version, '2') < 0) {
 				include DP_BASE_DIR.'/db/upgrade_contacts.php';
@@ -128,6 +129,7 @@ function dPupgrade($from_version, $to_version, $last_updated) {
 			$worker = $perms->get_group_id('normal', null, 'aro');
 			$perms->add_acl(array('application' => array('view')), null, array($worker, $guest), array('app' => array('users')), null, 1, 1, null, null, 'user');
 
+		// TODO:  Add new versions here.  Keep this message above the default label.
 		case '20071104': // Last changed date.
 			// Add the permissions for task_log
 			dPmsg('Adding File Folder permissions');
@@ -140,23 +142,6 @@ function dPupgrade($from_version, $to_version, $last_updated) {
 		case '20071114':
 		case '20071204':
 		case '20071218':
-		case '20080728':
-			// Seeing as we had a bug in installation/upgrade logic in previous
-			// upgrades, we need to make sure we check that the latest permissions
-			// are there.  Luckily the permissions system won't double-add objects
-			dPmsg('Checking/Updating permissions');
-			$guest = $perms->get_group_id('guest', null, 'aro');
-			$worker = $perms->get_group_id('normal', null, 'aro');
-			$perms->add_acl(array('application' => array('view')), null, array($worker, $guest), array('app' => array('users')), null, 1, 1, null, null, 'user');
-			$perms->add_object('app', 'File Folders', 'file_folders', 6, 0, 'axo');
-			$all_mods = $perms->get_group_id('all', null, 'axo');
-			$nonadmin = $perms->get_group_id('non_admin', null, 'axo');
-			$perms->add_group_object($all_mods, 'app', 'file_folders', 'axo');
-			$perms->add_group_object($nonadmin, 'app', 'file_folders', 'axo');
-
-		case '20090427':
-			
-		// TODO:  Add new versions here.  Keep this message above the default label.
 		default:
 			break;
 	}

@@ -1,5 +1,5 @@
-<?php /*  STYLE/CLASSIC $Id$ */
-if (!defined('DP_BASE_DIR')) {
+<?php /*  STYLE/CLASSIC $Id: login.php 4842 2007-03-17 15:56:19Z caseydk $ */
+if (!defined('DP_BASE_DIR')){
 	die('You should not access this file directly');
 }
 ?>
@@ -8,44 +8,44 @@ if (!defined('DP_BASE_DIR')) {
 	   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-	<meta http-equiv="Content-Type" content="text/html;charset=<?php echo isset($locale_char_set) ? $locale_char_set : 'UTF-8';?>" />
+	<meta http-equiv="Content-Type" content="text/html;charset=<?php echo isset( $locale_char_set ) ? $locale_char_set : 'UTF-8';?>" />
 	<meta http-equiv="Pragma" content="no-cache">
 	<link href="./style/<?php echo $uistyle;?>/main.css" rel="STYLESHEET" type="text/css" />
 </head>
 
-<body style="background-color: white" onload="document.loginform.username.focus();">
+<body bgcolor="white" onload="document.loginform.username.focus();">
 <p>&nbsp;</p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
-<table align="center" border="0" width="250" cellpadding="4" cellspacing="0" style="background-color: #cccccc" class="bordertable">
+<table align="center" border="0" width="250" cellpadding="4" cellspacing="0" bgcolor="#cccccc" class="bordertable">
 <?php //please leave action argument empty ?>
 <!--form action="./index.php" method="post" name="loginform"-->
 <form method="post" action="<?php echo $loginFromPage; ?>" name="loginform">
 <input type="hidden" name="login" value="<?php echo time();?>" />
 <input type="hidden" name="redirect" value="<?php echo $redirect;?>" />
 <tr>
-	<td colspan="2" class="headerfontWhite" style="background-color: gray">
+	<td colspan="2" class="headerfontWhite" bgcolor="gray">
 		<strong><?php echo $dPconfig['company_name'];?></strong>
 	</td>
 </tr>
 <tr>
-	<td style="background-color: #eeeeee" align="right" nowrap width="100">
+	<td bgcolor="#eeeeee" align="right" nowrap width="100">
 		<?php echo $AppUI->_('Username');?>:
 	</td>
-	<td style="background-color: #eeeeee" align="left" class="menufontlight" nowrap>
+	<td bgcolor="#eeeeee" align="left" class="menufontlight" nowrap>
 		<input type="text" size="25" maxlength="255" name="username" class="text" />
 	</td>
 </tr>
 <tr>
-	<td style="background-color: #eeeeee" align="right"  nowrap>
+	<td bgcolor="#eeeeee" align="right"  nowrap>
 		<?php echo $AppUI->_('Password');?>:
 	</td>
-	<td style="background-color: #eeeeee" align="left" class="menufontlight" nowrap>
+	<td bgcolor="#eeeeee" align="left" class="menufontlight" nowrap>
 		<input type="password" size="25" maxlength="32" name="password" class="text" />
 	</td>
 </tr>
 <tr>
-	<td style="background-color: #eeeeee" align="center" class="menufontlight" nowrap colspan="2">
+	<td bgcolor="#eeeeee" align="center" class="menufontlight" nowrap colspan="2">
 		<input type="submit" name="login" value="<?php echo $AppUI->_('login');?>" class="button" /></p>
 	</td>
 </tr>
@@ -53,7 +53,7 @@ if (!defined('DP_BASE_DIR')) {
 
 <p align="center"><?php 
 	echo '<span class="error">'.$AppUI->getMsg().'</span>';
-	//echo ini_get('register_globals') ? '' : '<br /><span class="warning">WARNING: dotproject is not fully supported with register_globals=off</span>';
+	//echo ini_get( 'register_globals') ? '' : '<br /><span class="warning">WARNING: dotproject is not fully supported with register_globals=off</span>';
 ?></p>
 
 <table align="center" border="0" width="250" cellpadding="4" cellspacing="0">
@@ -76,6 +76,6 @@ if (!defined('DP_BASE_DIR')) {
 </tr>
 </form>
 </table>
-<center><?php echo $AppUI->_('* You must have cookies enabled in your browser');?></center>
+<center><?php echo '* ' . $AppUI->_('You must have cookies enabled in your browser');?></center>
 </body>
 </html>

@@ -1,4 +1,4 @@
-<?php /* ADMIN $Id$ */
+<?php /* ADMIN $Id: vw_usr_roles.php 4800 2007-03-06 00:34:46Z merlinyoda $ */
 GLOBAL $AppUI, $user_id, $canEdit, $canDelete, $tab;
 
 if (!defined('DP_BASE_DIR')) {
@@ -11,7 +11,7 @@ require_once DP_BASE_DIR."/modules/system/roles/roles.class.php";
 
 $perms =& $AppUI->acl();
 $user_roles = $perms->getUserRoles($user_id);
-$crole =& new CRole;
+$crole = new CRole;
 $roles = $crole->getRoles();
 // Format the roles for use in arraySelect
 $roles_arr = array();
@@ -29,7 +29,7 @@ foreach ($roles as $role) {
 if ($canEdit) {
 ?>
 function delIt(id) {
-	if (confirm('Are you sure you want to delete this role?')) {
+	if (confirm( 'Are you sure you want to delete this role?' )) {
 		var f = document.frmPerms;
 		f.del.value = 1;
 		f.role_id.value = id;
@@ -51,7 +51,7 @@ function delIt(id) {
 </tr>
 
 <?php
-foreach ($user_roles as $row) {
+foreach ($user_roles as $row){
 	$buf = '';
 
 	$style = '';
@@ -60,7 +60,7 @@ foreach ($user_roles as $row) {
 	$buf .= '<td nowrap>';
 	if ($canEdit) {
 		$buf .= "<a href=\"javascript:delIt({$row['id']});\" title=\"".$AppUI->_('delete')."\">"
-			. dPshowImage('./images/icons/stock_delete-16.png', 16, 16, '')
+			. dPshowImage( './images/icons/stock_delete-16.png', 16, 16, '' )
 			. "</a>";
 	}
 	$buf .= '</td>';

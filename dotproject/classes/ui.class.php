@@ -1,4 +1,4 @@
-<?php /* CLASSES $Id$ */
+<?php /* CLASSES $Id: ui.class.php 5699 2008-05-05 18:55:11Z merlinyoda $ */
 /**
 * @package dotproject
 * @subpackage core
@@ -35,7 +35,7 @@ require_once DP_BASE_DIR.'/classes/permissions.class.php';
 * The Application User Interface Class.
 *
 * @author Andrew Eddie <eddieajau@users.sourceforge.net>
-* @version $Revision$
+* @version $Revision: 5699 $
 */
 class CAppUI {
 /** @var array generic array for holding the state of anything */
@@ -58,60 +58,62 @@ class CAppUI {
 	var $user_prefs=null;
 /** @var int Unix time stamp */
 	var $day_selected=null;
-	
-	// localisation
+
+// localisation
 /** @var string */
 	var $user_locale=null;
 /** @var string */
 	var $user_lang=null;
 /** @var string */
 	var $base_locale = 'en'; // do not change - the base 'keys' will always be in english
-	
+
+
+
 /** @var string Message string*/
 	var $msg = '';
 /** @var string */
 	var $msgNo = '';
 /** @var string Default page for a redirect call*/
 	var $defaultRedirect = '';
-	
+
 /** @var array Configuration variable array*/
 	var $cfg=null;
-	
+
 /** @var integer Version major */
 	var $version_major = null;
-	
+
 /** @var integer Version minor */
 	var $version_minor = null;
-	
+
 /** @var integer Version patch level */
 	var $version_patch = null;
-	
+
 /** @var string Version string */
 	var $version_string = null;
-	
+
 /** @var integer for register log ID */
-	var $last_insert_id = null;	
+            var $last_insert_id = null;	
 /**
 * CAppUI Constructor
 */
 	function CAppUI() {
 		$this->state = array();
-		
+
 		$this->user_id = -1;
 		$this->user_first_name = '';
 		$this->user_last_name = '';
 		$this->user_company = 0;
 		$this->user_department = 0;
 		$this->user_type = 0;
-		
+
 		// cfg['locale_warn'] is the only cfgVariable stored in session data (for security reasons)
 		// this guarants the functionality of this->setWarning
 		$this->cfg['locale_warn'] = dPgetConfig('locale_warn');
 		
 		$this->project_id = 0;
-		
+
 		$this->defaultRedirect = '';
-		// set up the default preferences
+// set up the default preferences
 		$this->setUserLocale($this->base_locale);
 		$this->user_prefs = array();
 	}
@@ -122,7 +124,7 @@ class CAppUI {
  */
 	function getSystemClass($name=null) {
 		if ($name) {
-			return DP_BASE_DIR . '/classes/' . $name . '.class.php';
+			return DP_BASE_DIR."/classes/$name.class.php";
 		}
 	}
 
@@ -134,7 +136,7 @@ class CAppUI {
 */
 	function getLibraryClass($name=null) {
 		if ($name) {
-			return DP_BASE_DIR . '/lib/' . $name. '.php';
+			return DP_BASE_DIR."/lib/$name.php";
 		}
 	}
 
@@ -145,7 +147,7 @@ class CAppUI {
  */
 	function getModuleClass($name=null) {
 		if ($name) {
-			return (DP_BASE_DIR . '/modules/' . $name . '/' . $name . '.class.php');
+			return DP_BASE_DIR."/modules/$name/$name.class.php";
 		}
 	}
 
@@ -155,18 +157,16 @@ class CAppUI {
 */
 	function getVersion() {
 		global $dPconfig;
-		if (!(isset($this->version_major))) {
-			include_once (DP_BASE_DIR . '/includes/version.php');
+		if (! isset($this->version_major)) {
+			include_once DP_BASE_DIR . '/includes/version.php';
 			$this->version_major = $dp_version_major;
 			$this->version_minor = $dp_version_minor;
 			$this->version_patch = $dp_version_patch;
-			$this->version_string = ($this->version_major . '.' . $this->version_minor);
-			if (isset($this->version_patch)) {
-				$this->version_string .= '.' . $this->version_patch;
-			}
-			if (isset($dp_version_prepatch)) {
-				$this->version_string .= '-' . $dp_version_prepatch;
-			}
+			$this->version_string = $this->version_major . '.' . $this->version_minor;
+			if (isset($this->version_patch))
+			  $this->version_string .= '.' . $this->version_patch;
+			if (isset($dp_version_prepatch))
+			  $this->version_string .= '-' . $dp_version_prepatch;
 		}
 		return $this->version_string;
 	}
@@ -177,8 +177,8 @@ class CAppUI {
 	function checkStyle() {
 		// check if default user's uistyle is installed
 		$uistyle = $this->getPref('UISTYLE');
-		
-		if ($uistyle && !is_dir(DP_BASE_DIR . '/style/' . $uistyle)) {
+
+		if ($uistyle && !is_dir(DP_BASE_DIR."/style/$uistyle")) {
 			// fall back to host_style if user style is not installed
 			$this->setPref('UISTYLE', dPgetConfig('host_style'));
 		}
@@ -193,10 +193,9 @@ class CAppUI {
 */
 	function readDirs($path) {
 		$dirs = array();
-		$d = dir(DP_BASE_DIR . '/'  . $path);
+		$d = dir(DP_BASE_DIR."/$path");
 		while (false !== ($name = $d->read())) {
-			if (is_dir(DP_BASE_DIR . '/' . $path . '/' . $name) && $name != '.' && $name != '..' 
-			    && $name != 'CVS' && $name != '.svn') {
+			if(is_dir(DP_BASE_DIR."/{$path}/{$name}") && $name != '.' && $name != '..' && $name != 'CVS' && $name != '.svn') {
 				$dirs[$name] = $name;
 			}
 		}
@@ -212,10 +211,10 @@ class CAppUI {
 */
 	function readFiles($path, $filter='.') {
 		$files = array();
-		
+
 		if (is_dir($path) && ($handle = opendir($path))) {
 			while (false !== ($file = readdir($handle))) {
-				if ($file != '.' && $file != '..' && preg_match(('/' . $filter . '/'), $file)) { 
+				if ($file != '.' && $file != '..' && preg_match("/$filter/", $file)) { 
 					$files[$file] = $file; 
 				} 
 			}
@@ -223,8 +222,8 @@ class CAppUI {
 		}
 		return $files;
 	}
-	
-	
+
+
 /**
 * Utility function to check whether a file name is 'safe'
 *
@@ -234,23 +233,23 @@ class CAppUI {
 */
 	function checkFileName($file) {
 		global $AppUI;
-		
+
 		// define bad characters and their replacement
-		$bad_chars = ';/\\';
+		$bad_chars = ";/\\";
 		$bad_replace = '....'; // Needs the same number of chars as $bad_chars
-		
+
 		// check whether the filename contained bad characters
-		if (mb_strpos(strtr($file, $bad_chars, $bad_replace), '.') !== false) {
+		if (strpos(strtr($file, $bad_chars, $bad_replace), '.') !== false) {
 			$AppUI->redirect('m=public&a=access_denied');
-			return $file;
 		}
 		else {
 			return $file;
 		}
+
 	}
-	
-	
-	
+
+
+
 /**
 * Utility function to make a file name 'safe'
 *
@@ -263,31 +262,28 @@ class CAppUI {
 		$file = str_replace('..\\', '', $file);
 		return $file;
 	}
-	
+
 /**
 * Sets the user locale.
 *
-* Looks in the user preferences first. 
-* If this value has not been set by the user it uses the system default set in config.php.
-* @param string Locale abbreviation corresponding to the sub-directory name in the locales 
-* directory (usually the abbreviated language code).
+* Looks in the user preferences first.  If this value has not been set by the user it uses the system default set in config.php.
+* @param string Locale abbreviation corresponding to the sub-directory name in the locales directory (usually the abbreviated language code).
 */
 	function setUserLocale($loc='', $set = true) {
 		global $locale_char_set;
-		
+
 		$LANGUAGES = $this->loadLanguages();
-		
+
 		if (! $loc) {
-			$loc = ((@$this->user_prefs['LOCALE']) ? $this->user_prefs['LOCALE'] 
-			        : dPgetConfig('host_locale'));
+			$loc = @$this->user_prefs['LOCALE'] ? $this->user_prefs['LOCALE'] : dPgetConfig('host_locale');
 		}
-		
-		if (isset($LANGUAGES[$loc])) {
+
+		if (isset($LANGUAGES[$loc]))
 			$lang = $LANGUAGES[$loc];
-		} else {
+		else {
 			// Need to try and find the language the user is using, find the first one
 			// that has this as the language part
-			if (mb_strlen($loc) > 2) {
+			if (strlen($loc) > 2) {
 				list ($l, $c) = explode('_', $loc);
 				$loc = $this->findLanguage($l, $c);
 			} else {
@@ -296,77 +292,75 @@ class CAppUI {
 			$lang = $LANGUAGES[$loc];
 		}
 		list($base_locale, $english_string, $native_string, $default_language, $lcs) = $lang;
-		if (! isset($lcs)) {
+		if (! isset($lcs))
 			$lcs = (isset($locale_char_set)) ? $locale_char_set : 'utf-8';
-		}
-		
-		if (version_compare(phpversion(), '4.3.0', 'ge')) {
+
+		if (version_compare(phpversion(), '4.3.0', 'ge'))
 			$user_lang = array($loc . '.' . $lcs, $default_language, $loc, $base_locale);
-		}
 		else {
-			$user_lang = ((mb_strtoupper(mb_substr(PHP_OS, 0, 3)) == 'WIN') ? $default_language 
-						  : ($loc . '.' . $lcs));
+			if (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN') {
+				$user_lang = $default_language;
+			} else {
+				$user_lang = $loc . '.' . $lcs;
+			}
 		}
-		
 		if ($set) {
 			$this->user_locale = $base_locale;
 			$this->user_lang = $user_lang;
 			$locale_char_set = $lcs;
-			//mb_internal_encoding($locale_char_set);
 		} else {
 			return $user_lang;
 		}
 	}
-	
-	function findLanguage($language, $country = false) {
+
+	function findLanguage($language, $country = false)
+	{
 		$LANGUAGES = $this->loadLanguages();
-		$language = mb_strtolower($language);
+		$language = strtolower($language);
 		if ($country) {
-			$country = mb_strtoupper($country);
+			$country = strtoupper($country);
 			// Try constructing the code again
 			$code = $language . '_' . $country;
-			if (isset($LANGUAGES[$code])) {
+			if (isset($LANGUAGES[$code]))
 				return $code;
-			}
 		}
-		
+
 		// Just use the country code and try and find it in the
 		// languages list.
 		$first_entry = null;
 		foreach ($LANGUAGES as $lang => $info) {
 			list($l, $c) = explode('_', $lang);
 			if ($l == $language) {
-				if (!($first_entry)) {
+				if (! $first_entry)
 					$first_entry = $lang;
-				}
-				if ($country && $c == $country) {
+				if ($country && $c == $country)
 					return $lang;
-				}
 			}
 		}
 		return $first_entry;
 	}
-	
+
 /**
  * Load the known language codes for loaded locales
  *
  */
 	function loadLanguages() {
+
 		if (isset($_SESSION['LANGUAGES'])) {
 			$LANGUAGES =& $_SESSION['LANGUAGES'];
 		} else {
 			$LANGUAGES = array();
 			$langs = $this->readDirs('locales');
 			foreach ($langs as $lang) {
-				if (file_exists(DP_BASE_DIR . '/locales/' . $lang . '/lang.php')) {
-					include_once DP_BASE_DIR . '/locales/' . $lang . '/lang.php';
+				if (file_exists(DP_BASE_DIR."/locales/$lang/lang.php")) {
+					include_once DP_BASE_DIR."/locales/$lang/lang.php";
 				}
 			}
 			@$_SESSION['LANGUAGES'] =& $LANGUAGES;
 		}
 		return $LANGUAGES;
 	}
-	
+
 /**
 * Translate string to the local language [same form as the gettext abbreviation]
 *
@@ -384,15 +378,14 @@ class CAppUI {
 	function _($str, $flags= 0) {
 		if (is_array($str)) {
 			$translated = array();
-			foreach ($str as $s) {
+			foreach ($str as $s)
 				$translated[] = $this->__($s, $flags);
-			}
 			return implode(' ', $translated);
 		} else {
 			return $this->__($str, $flags);
 		}
 	}
-	
+
 	function __($str, $flags = 0) {
 		$str = trim($str);
 		if (empty($str)) {
@@ -402,16 +395,18 @@ class CAppUI {
 		
 		if ($x) {
 			$str = $x;
-		} else if (dPgetConfig('locale_warn') && !($this->base_locale == $this->user_locale 
-		                                           && in_array($str, @$GLOBALS['translate']))) {
-			$str .= dPgetConfig('locale_alert');
+		} else if (dPgetConfig('locale_warn')) {
+			if ($this->base_locale != $this->user_locale ||
+				($this->base_locale == $this->user_locale && !in_array($str, @$GLOBALS['translate']))) {
+				$str .= dPgetConfig('locale_alert');
+			}
 		}
 		switch ($flags & UI_CASE_MASK) {
 			case UI_CASE_UPPER:
-				$str = mb_strtoupper($str);
+				$str = strtoupper($str);
 				break;
 			case UI_CASE_LOWER:
-				$str = mb_strtolower($str);
+				$str = strtolower($str);
 				break;
 			case UI_CASE_UPPERFIRST:
 				$str = ucwords($str);
@@ -429,12 +424,12 @@ class CAppUI {
 		 * where appropriate.
 		 * AJD - 2004-12-10
 		 */
-		global $locale_char_set;
-		
+                global $locale_char_set;
+
 		if (! $locale_char_set) {
 			$locale_char_set = 'utf-8';
 		}
-		
+                
 		switch ($flags & UI_OUTPUT_MASK) {
 			case UI_OUTPUT_HTML:
 				$str = htmlentities(stripslashes($str), ENT_COMPAT, $locale_char_set);
@@ -499,18 +494,20 @@ class CAppUI {
 */
 	function redirect($params='', $hist='') {
 		$session_id = SID;
-		
+
 		session_write_close();
-		// are the params empty
+	// are the params empty
 		if (!$params) {
-			// has a place been saved
-			$params = ((!(empty($this->state["SAVEDPLACE$hist"]))) 
-			           ? $this->state["SAVEDPLACE$hist"] : $this->defaultRedirect);
+		// has a place been saved
+			$params = !empty($this->state["SAVEDPLACE$hist"]) ? $this->state["SAVEDPLACE$hist"] : $this->defaultRedirect;
 		}
 		// Fix to handle cookieless sessions
 		if ($session_id != '') {
-			//appending $session_id parameter to $params
-			$params .= (($params) ? '&' : '')  . $session_id;
+			if (!$params) {
+				$params = $session_id;
+			} else {
+				$params .= '&' . $session_id;
+			}
 		}
 		ob_implicit_flush(); // Ensure any buffering is disabled.
 		header('Location: index.php?' . $params);
@@ -544,7 +541,7 @@ class CAppUI {
 		$img = '';
 		$class = '';
 		$msg = $this->msg;
-		
+
 		switch($this->msgNo) {
 		case UI_MSG_OK:
 			$img = dPshowImage(dPfindImage('stock_ok-16.png'), 16, 16, '');
@@ -570,10 +567,11 @@ class CAppUI {
 			$this->msg = '';
 			$this->msgNo = 0;
 		}
-		return (($msg) ? ('<table cellspacing="0" cellpadding="1" border="0"><tr>'
-		                  . '<td>' . $img . '</td><td class="' . $class . '">' . $msg . '</td>'
-		                  . '</tr></table>')
-		        : '');
+		return $msg ? '<table cellspacing="0" cellpadding="1" border="0"><tr>'
+			. "<td>$img</td>"
+			. "<td class=\"$class\">$msg</td>"
+			. '</tr></table>'
+			: '';
 	}
 /**
 * Set the value of a temporary state variable.
@@ -584,9 +582,8 @@ class CAppUI {
 * @param mixed Value to assign to the label/key
 */
 	function setState($label, $value = null) {
-		if (isset($value)) {
+		if (isset($value))
 			$this->state[$label] = $value;
-		}
 	}
 /**
 * Get the value of a temporary state variable.
@@ -603,7 +600,7 @@ class CAppUI {
 			return NULL;
 		}
 	}
-	
+
 	function checkPrefState($label, $value, $prefname, $default_value = null) {
 		// Check if we currently have it set
 		if (isset($value)) {
@@ -644,13 +641,10 @@ class CAppUI {
 */
 	function login($username, $password) {
 		require_once DP_BASE_DIR.'/classes/authenticator.class.php';
-		
+
 		$auth_method = dPgetConfig('auth_method', 'sql');
-		if (@$_POST['login'] != 'login' 
-		    && @$_POST['login'] != $this->_('login', UI_OUTPUT_RAW) 
-		    && $_REQUEST['login'] != $auth_method) {
+		if (@$_POST['login'] != 'login' && @$_POST['login'] != $this->_('login', UI_OUTPUT_RAW) && $_REQUEST['login'] != $auth_method)
 			die('You have chosen to log in using an unsupported or disabled login method');
-		}
 		$auth =& getauth($auth_method);
 		
 		$username = trim(db_escape($username));
@@ -661,36 +655,30 @@ class CAppUI {
 		}
 	
 		$user_id = $auth->userId($username);
-		// Some authentication schemes may collect username in various ways.
-		$username = $auth->username; 
-		
+		$username = $auth->username; // Some authentication schemes may collect username in various ways.
 		// Now that the password has been checked, see if they are allowed to
 		// access the system
-		if (!(isset($GLOBALS['acl']))) {
-			$GLOBALS['acl'] =& new dPacl;
+		if (! isset($GLOBALS['acl']))
+		  $GLOBALS['acl'] = new dPacl;
+		if (! $GLOBALS['acl']->checkLogin($user_id)) {
+		  dprint(__FILE__, __LINE__, 1, 'Permission check failed');
+		  return false;
 		}
-		if (!($GLOBALS['acl']->checkLogin($user_id))) {
-			dprint(__FILE__, __LINE__, 1, 'Permission check failed');
-			return false;
-		}
-		
-		$q = new DBQuery;
+
+		$q  = new DBQuery;
 		$q->addTable('users');
-		$q->addQuery('user_id, contact_first_name as user_first_name, ' 
-		             . 'contact_last_name as user_last_name, contact_company as user_company, ' 
-		             . 'contact_department as user_department, contact_email as user_email, ' 
-		             . 'user_type');
+		$q->addQuery('user_id, contact_first_name as user_first_name, contact_last_name as user_last_name, contact_company as user_company, contact_department as user_department, contact_email as user_email, user_type');
 		$q->addJoin('contacts', 'con', 'contact_id = user_contact');
 		$q->addWhere("user_id = $user_id AND user_username = '$username'");
 		$sql = $q->prepare();
 		$q->clear();
-		dprint(__FILE__, __LINE__, 7, ('Login SQL: ' . $sql));
-		
-		if (!db_loadObject($sql, $this)) {
+		dprint(__FILE__, __LINE__, 7, "Login SQL: $sql");
+
+		if(!db_loadObject($sql, $this)) {
 			dprint(__FILE__, __LINE__, 1, 'Failed to load user information');
 			return false;
 		}
-		
+
 // load the user preferences
 		$this->loadPrefs($this->user_id);
 		$this->setUserLocale();
@@ -701,46 +689,44 @@ class CAppUI {
 /**
 *@Function for regiser log in dotprojet table "user_access_log"
 */
-	function registerLogin() {
-		$q = new DBQuery;
+	   function registerLogin(){
+		$q  = new DBQuery;
 		$q->addTable('user_access_log');
 		$q->addInsert('user_id', $this->user_id);
 		$q->addInsert('date_time_in', 'now()', false, true);
 		$q->addInsert('user_ip', $_SERVER['REMOTE_ADDR']);
-		$q->exec();
-		$this->last_insert_id = db_insert_id();
-		$q->clear();
-	}
+                $q->exec();
+                $this->last_insert_id = db_insert_id();
+								$q->clear();
+           }
 
 /**
 *@Function for register log out in dotproject table "user_acces_log"
 */
-	function registerLogout($user_id) {
-		$q = new DBQuery;
+          function registerLogout($user_id){
+		$q  = new DBQuery;
 		$q->addTable('user_access_log');
 		$q->addUpdate('date_time_out', date('Y-m-d H:i:s'));
-		$q->addWhere('user_id = ' . $user_id);
-		$q->addWhere("(date_time_out='0000-00-00 00:00:00' OR date_time_out IS NULL)");
-		$q->addWhere('user_access_log_id = ' . $this->last_insert_id);
-		if ($user_id > 0) {
+		$q->addWhere("user_id = '$user_id' and (date_time_out='0000-00-00 00:00:00' or isnull(date_time_out)) ");
+		if ($user_id > 0){
 			$q->exec();
 			$q->clear();
 		}
-	}
+          }
           
 /**
 *@Function for update table user_acces_log in field date_time_lost_action
 */
-	function updateLastAction($last_insert_id) {
+          function updateLastAction($last_insert_id){
 		$q  = new DBQuery;
 		$q->addTable('user_access_log');
 		$q->addUpdate('date_time_last_action', date('Y-m-d H:i:s'));
-		$q->addWhere('user_access_log_id = ' . $last_insert_id);
-		if ($last_insert_id > 0) {
-			$q->exec();
-			$q->clear();
-		}
-	}
+		$q->addWhere("user_access_log_id = $last_insert_id");
+                if ($last_insert_id > 0){
+                    $q->exec();
+                    $q->clear();
+                }
+          }
 /************************************************************************************************************************
 /**
 * @deprecated
@@ -800,7 +786,7 @@ class CAppUI {
 * @return array Named array list in the form 'module directory'=>'module name'
 */
 	function getInstalledModules() {
-		$q = new DBQuery;
+		$q  = new DBQuery;
 		$q->addTable('modules');
 		$q->addQuery('mod_directory, mod_ui_name');
 		$q->addOrder('mod_directory');
@@ -811,7 +797,7 @@ class CAppUI {
 * @return array Named array list in the form 'module directory'=>'module name'
 */
 	function getActiveModules() {
-		$q = new DBQuery;
+		$q  = new DBQuery;
 		$q->addTable('modules');
 		$q->addQuery('mod_directory, mod_ui_name');
 		$q->addWhere('mod_active > 0');
@@ -824,17 +810,17 @@ class CAppUI {
 * ['module directory', 'module name', 'module_icon']
 */
 	function getMenuModules() {
-		$q = new DBQuery;
+		$q  = new DBQuery;
 		$q->addTable('modules');
 		$q->addQuery('mod_directory, mod_ui_name, mod_ui_icon');
 		$q->addWhere('mod_active > 0 AND mod_ui_active > 0 AND mod_directory <> \'public\'');
-		$q->addWhere("mod_type != 'utility'");
+		$q->addWhere('mod_type != \'utility\'');
 		$q->addOrder('mod_ui_order');
 		return ($q->loadList());
 	}
 
 	function isActiveModule($module) {
-		$q = new DBQuery;
+		$q  = new DBQuery;
 		$q->addTable('modules');
 		$q->addQuery('mod_active');
 		$q->addWhere("mod_directory = '$module'");
@@ -848,73 +834,63 @@ class CAppUI {
  * @return object dPacl
  */
 	function &acl() {
-		if (!(isset($GLOBALS['acl']))) {
-			$GLOBALS['acl'] =& new dPacl;
+		if (! isset($GLOBALS['acl'])) {
+			$GLOBALS['acl'] = new dPacl;
 	  	}
 	  	return $GLOBALS['acl'];
 	}
-	
+
 /**
  * Find and add to output the file tags required to load module-specific
  * javascript.
  */
 	function loadJS() {
-		global $m, $a;
-		// Search for the javascript files to load.
-		if (! isset($m)) {
-			return;
-		}
-		$root = DP_BASE_DIR;
-		if (mb_substr($root, -1) != '/') {
-			$root .= '/';
-		}
-		
-		$base = dPgetConfig('base_url');
-		if (mb_substr($base, -1) != '/') {
-			$base .= '/';
-		}
-		
-		// Load the basic javascript used by all modules.
-		$jsdir = dir("{$root}js");
-		
-		$js_files = array();
-		while (($entry = $jsdir->read()) !== false) {
-			if (mb_substr($entry, -3) == '.js') {
-				$js_files[] = $entry;
-			}
-		}
-		asort($js_files);
-		while (list(,$js_file_name) = each($js_files)) {
-			echo ('<script type="text/javascript" src="' . $base . 'js/' . $js_file_name 
-			      . '"></script>'."\n");
-		}
-		
+	  global $m, $a;
+	  // Search for the javascript files to load.
+	  if (! isset($m))
+	    return;
+	  $root = DP_BASE_DIR;
+	  if (substr($root, -1) != '/')
+	    $root .= '/';
+
+	  $base = dPgetConfig('base_url');
+	  if (substr($base, -1) != '/')
+	    $base .= '/';
+	  // Load the basic javascript used by all modules.
+	  $jsdir = dir("{$root}js");
+
+	  $js_files = array();
+	  while (($entry = $jsdir->read()) !== false) {
+	    if (substr($entry, -3) == '.js'){
+		    $js_files[] = $entry;
+	    }
+	  }
+	  asort($js_files);
+	  while(list(,$js_file_name) = each($js_files)){
+		  echo "<script type=\"text/javascript\" src=\"{$base}js/$js_file_name\"></script>\n";
+		  }
+
 		// additionally load overlib
-		echo ('<script type="text/javascript" src="' . $base . 'lib/overlib/overlib.js"></script>' 
-		      . "\n");
-		
+			echo "<script type=\"text/javascript\" src=\"{$base}lib/overlib/overlib.js\"></script>\n";
+
 		$this->getModuleJS($m, $a, true);
 	}
-	
+
 	function getModuleJS($module, $file=null, $load_all = false) {
 		$root = DP_BASE_DIR;
-		if (mb_substr($root, -1) != '/') {
+		if (substr($root, -1) != '/');
 			$root .= '/';
-		}
 		$base = DP_BASE_URL;
-		if (mb_substr($base, -1) != '/') {
+		if (substr($base, -1) != '/') 
 			$base .= '/';
+		if ($load_all || ! $file) {
+			if (file_exists("{$root}modules/$module/$module.module.js"))
+				echo '<script type="text/javascript" src="'.$base.'modules/'.$module.'/'.$module.'.module.js"></script>'."\n";
 		}
-		if ($load_all || !($file)) {
-			if (file_exists($root . 'modules/' . $module . '/' . $module . '.module.js'))
-				echo ('<script type="text/javascript" src="' . $base . 'modules/' . $module . '/' 
-				      . $module . '.module.js"></script>' . "\n");
-		}
-		if (isset($file) && file_exists($root . 'modules/' . $module . '/' . $file . '.js')) {
-			echo ('<script type="text/javascript" src="' . $base . 'modules/' . $module . '/' 
-			      . $file . '.js"></script>' . "\n");
-		}
+	  if (isset($file) && file_exists("{$root}modules/$module/$file.js"))
+	    echo '<script type="text/javascript" src="'.$base.'modules/'.$module.'/'.$file.'.js"></script>'."\n";
 	}
+
 }
 
 /**
@@ -944,7 +920,7 @@ the active tab, and the selected tab **/
 	function CTabBox_core($baseHRef='', $baseInc='', $active=0, $javascript = null) {
 		$this->tabs = array();
 		$this->active = $active;
-		$this->baseHRef = ($baseHRef ? ($baseHRef . '&amp;') : '?');
+		$this->baseHRef = ($baseHRef ? "$baseHRef&" : '?');
 		$this->javascript = $javascript;
 		$this->baseInc = $baseInc;
 	}
@@ -968,12 +944,12 @@ the active tab, and the selected tab **/
  			$this->tabs[] = $t;
 		}
 	}
-	
+
 	function isTabbed() {
 		global $AppUI;
 		return (($this->active < 0 || @$AppUI->getPref('TABVIEW') == 2) ? false : true);
 	}
-	
+
 /**
 * Displays the tabbed box
 *
@@ -985,23 +961,23 @@ the active tab, and the selected tab **/
 		GLOBAL $AppUI, $currentTabId, $currentTabName;
 		reset($this->tabs);
 		$s = '';
-		// tabbed / flat view options
+	// tabbed / flat view options
 		if (@$AppUI->getPref('TABVIEW') == 0) {
-			$s .= '<table border="0" cellpadding="2" cellspacing="0" width="100%">';
-			$s .= '<tr><td nowrap="nowrap">';
-			$s .= ('<a href="'.$this->baseHRef.'tab=0">' . $AppUI->_('tabbed') . '</a> : ');
-			$s .= ('<a href="'.$this->baseHRef.'tab=-1">' . $AppUI->_('flat') . '</a>');
-			$s .= ('</td>' . $extra . '</tr></table>');
+			$s .= '<table border="0" cellpadding="2" cellspacing="0" width="100%"><tr><td nowrap="nowrap">';
+			$s .= '<a href="'.$this->baseHRef.'tab=0">'.$AppUI->_('tabbed').'</a> : ';
+			$s .= '<a href="'.$this->baseHRef.'tab=-1">'.$AppUI->_('flat').'</a>';
+			$s .= '</td>'.$extra.'</tr></table>';
 			echo $s;
-		} else if ($extra) {
-			echo ('<table border="0" cellpadding="2" cellspacing="0" width="100%"><tr>' 
-				  . $extra . '</tr></table>');
 		} else {
-			echo '<img src="./images/shim.gif" height="10" width="1" />';
+			if ($extra) {
+				echo '<table border="0" cellpadding="2" cellspacing="0" width="100%"><tr>'.$extra.'</tr></table>';
+			} else {
+				echo '<img src="./images/shim.gif" height="10" width="1" />';
+			}
 		}
-		
+
 		if ($this->active < 0 || @$AppUI->getPref('TABVIEW') == 2) {
-			// flat view, active = -1
+		// flat view, active = -1
 			echo '<table border="0" cellpadding="2" cellspacing="0" width="100%">';
 			foreach ($this->tabs as $k => $v) {
 				echo '<tr><td><strong>'.($v[2] ? $v[1] : $AppUI->_($v[1])).'</strong></td></tr>';
@@ -1020,35 +996,34 @@ the active tab, and the selected tab **/
 				// Breaks classic view.
 				// $this->active = 0;
 			}
-			foreach ($this->tabs as $k => $v) {
+			foreach($this->tabs as $k => $v) {
 				$class = ($k == $this->active) ? 'tabon' : 'taboff';
-				$s .= "\n\t" . '<td width="1%" nowrap="nowrap" class="tabsp">';
-				$s .= "\n\t\t" . '<img src="./images/shim.gif" height="1" width="1" alt="" />';
-				$s .= "\n\t" . '</td>';
-				$s .= "\n\t" . '<td id="toptab_' . $k . '" width="1%" nowrap="nowrap"';
+				$s .= "\n\t<td width=\"1%\" nowrap=\"nowrap\" class=\"tabsp\">";
+				$s .= "\n\t\t<img src=\"./images/shim.gif\" height=\"1\" width=\"1\" alt=\"\" />";
+				$s .= "\n\t</td>";
+				$s .= "\n\t<td id=\"toptab_" . $k . "\" width=\"1%\" nowrap=\"nowrap\"";
 				if ($js_tabs) {
-					$s .= ' class="' . $class . '"';
+					$s .= " class=\"$class\"";
 				}
-				$s .= '>';
-				$s .= "\n\t\t" . '<a href="';
+				$s .= ">";
+				$s .= "\n\t\t<a href=\"";
 				if ($this->javascript) {
-					$s .= 'javascript:' . $this->javascript . '(' . $this->active . ', ' . $k . ')';
+					$s .= "javascript:" . $this->javascript . "({$this->active}, $k)";
 				} else if ($js_tabs) {
 					$s .= 'javascript:show_tab(' . $k . ')';
 				} else {
-					$s .= $this->baseHRef . 'tab=' . $k;
+					$s .= $this->baseHRef . "tab=$k";
 				}
-				$s .= '">'. ($v[2] ? $v[1] : $AppUI->_($v[1])). '</a>';
-				$s .= "\n\t" . '</td>';
+				$s .= "\">". ($v[2] ? $v[1] : $AppUI->_($v[1])). "</a>";
+				$s .= "\n\t</td>";
 			}
-			$s .= "\n\t" . '<td nowrap="nowrap" class="tabsp">&nbsp;</td>';
+			$s .= "\n\t<td nowrap=\"nowrap\" class=\"tabsp\">&nbsp;</td>";
 			$s .= "\n</tr>";
 			$s .= "\n<tr>";
-			$s .= '<td width="100%" colspan="' . (count($this->tabs)*2 + 1) . '" class="tabox">';
+			$s .= '<td width="100%" colspan="'.(count($this->tabs)*2 + 1).'" class="tabox">';
 			echo $s;
-			
-			//Will be null if the previous selection tab is not available in the new window
-			// eg. Children tasks
+			//Will be null if the previous selection tab is not available in the new window eg. Children tasks
+
 			if ($this->baseInc . $this->tabs[$this->active][0] != "") {
 				$currentTabId = $this->active;
 				$currentTabName = $this->tabs[$this->active][1];
@@ -1057,18 +1032,18 @@ the active tab, and the selected tab **/
 				}
 			}
 			if ($js_tabs) {
-				foreach ($this->tabs as $k => $v) {
-					echo '<div class="tab" id="tab_' . $k . '">';
-					require $this->baseInc.$v[0] . '.php';
+				foreach($this->tabs as $k => $v) {
+					echo '<div class="tab" id="tab_'.$k.'">';
+					require $this->baseInc.$v[0].'.php';
 					echo '</div>';
 				}
 			}
 			echo "\n</td>\n</tr>\n</table>";
 		}
 	}
-	
+
 	function loadExtras($module, $file = null) {
-		global $AppUI, $acl;
+		global $AppUI;
 		if (! (isset($_SESSION['all_tabs']) && isset($_SESSION['all_tabs'][$module]))) {
 			return false;
 		}
@@ -1110,8 +1085,7 @@ the active tab, and the selected tab **/
 
 		list($file, $name) = $this->tabs[$tab];
 		foreach ($tab_array as $tab_elem) {
-			if (isset($tab_elem['name']) && $tab_elem['name'] == $name 
-			    && $tab_elem['file'] == $file) {
+			if (isset($tab_elem['name']) && $tab_elem['name'] == $name && $tab_elem['file'] == $file) {
 				return $tab_elem['module'];
 			}
 		}
@@ -1179,14 +1153,15 @@ class CTitleBlock_core {
 */
 	function addCrumbDelete($title, $canDelete='', $msg='') {
 		global $AppUI;
-		$this->addCrumbRight('<table cellspacing="0" cellpadding="0" border="0"><tr><td>'
-		                     . '<a href="javascript:delIt()" title="'.($canDelete?'':$msg).'">'
-		                     . dPshowImage('./images/icons/' 
-		                                   . (($canDelete) ? 'stock_delete-16.png' 
-		                                      : 'stock_trash_full-16.png'), '16', '16', '')
-		                     . '</a></td><td>&nbsp;'
-		                     . '<a href="javascript:delIt()" title="' . (($canDelete) ? '' : $msg) 
-		                     . '">' . $AppUI->_($title) . '</a></td></tr></table>');
+		$this->addCrumbRight(
+			'<table cellspacing="0" cellpadding="0" border="0"><tr><td>'
+			. '<a href="javascript:delIt()" title="'.($canDelete?'':$msg).'">'
+			. dPshowImage('./images/icons/'.($canDelete?'stock_delete-16.png':'stock_trash_full-16.png'), '16', '16',  '')
+			. '</a>'
+			. '</td><td>&nbsp;'
+			. '<a href="javascript:delIt()" title="'.($canDelete?'':$msg).'">' . $AppUI->_($title) . '</a>'
+			. '</td></tr></table>'
+		);
 	}
 /**
 * The drawing function
@@ -1202,8 +1177,7 @@ class CTitleBlock_core {
 			$s .= dPshowImage(dPFindImage($this->icon, $this->module));
 			$s .= '</td>';
 		}
-		$s .= ($CR . '<td align="left" width="100%" nowrap="nowrap"><h1>' 
-		       . $AppUI->_($this->title) . '</h1></td>');
+		$s .= $CR . '<td align="left" width="100%" nowrap="nowrap"><h1>' . $AppUI->_($this->title) . '</h1></td>';
 		foreach ($this->cells1 as $c) {
 			$s .= $c[2] ? $CR . $c[2] : '';
 			$s .= $CR . '<td align="right" nowrap="nowrap"' . ($c[0] ? (' '.$c[0]): '') . '>';
@@ -1213,19 +1187,11 @@ class CTitleBlock_core {
 		}
 		if ($this->showhelp) {
 			$s .= '<td nowrap="nowrap" width="20" align="right">';
-			/*
-			$s .= ($CT . dPcontextHelp(('<img src="./images/obj/help.gif" width="14" height="16" ' 
-			                            . 'border="0" alt="'.$AppUI->_('Help').'" />'), 
-			                           $this->helpref));
-			*/
-			$s .= ("\n\t" . '<a href="#' . $this->helpref 
-			       . '" onClick="javascript:window.open(\'?m=help&amp;dialog=1&amp;hid=' 
-				   . $this->helpref 
-				   . "', 'contexthelp', 'width=400,height=400,left=50,top=50,scrollbars=yes," 
-			       . 'resizable=yes\')" title="' . $AppUI->_('Help') . '">');
-			$s .= "\n\t\t" . dPshowImage('./images/icons/stock_help-16.png', '16', '16', 
-			                             $AppUI->_('Help'));
-			$s .= "\n\t" . '</a>';
+			//$s .= $CT . contextHelp('<img src="./images/obj/help.gif" width="14" height="16" border="0" alt="'.$AppUI->_('Help').'" />', $this->helpref);
+
+			$s .= "\n\t<a href=\"#".$this->helpref."\" onClick=\"javascript:window.open('?m=help&dialog=1&hid=".$this->helpref."', 'contexthelp', 'width=400, height=400, left=50, top=50, scrollbars=yes, resizable=yes')\" title=\"".$AppUI->_('Help')."\">";
+			$s .= "\n\t\t" . dPshowImage('./images/icons/stock_help-16.png', '16', '16', $AppUI->_('Help'));
+			$s .= "\n\t</a>";
 			$s .= "\n</td>";
 		}
 		$s .= "\n</tr>";
@@ -1234,24 +1200,24 @@ class CTitleBlock_core {
 		if (count($this->crumbs) || count($this->cells2)) {
 			$crumbs = array();
 			foreach ($this->crumbs as $k => $v) {
-				$t = (($v[1]) ? ('<img src="' . dPfindImage($v[1], $this->module) 
-				                 . '" border="" alt="" />&nbsp;') : '');
+				$t = $v[1] ? '<img src="' . dPfindImage($v[1], $this->module) . '" border="" alt="" />&nbsp;' : '';
 				$t .= $AppUI->_($v[0]);
 				$crumbs[] = "<a href=\"$k\">$t</a>";
 			}
-			$s .= "\n" . '<table border="0" cellpadding="4" cellspacing="0" width="100%">';
+			$s .= "\n<table border=\"0\" cellpadding=\"4\" cellspacing=\"0\" width=\"100%\">";
 			$s .= "\n<tr>";
-			$s .= "\n\t" . '<td nowrap="nowrap">';
+			$s .= "\n\t<td nowrap=\"nowrap\">";
 			$s .= "\n\t\t" . '<strong>' . implode(' : ', $crumbs) . '</strong>';
-			$s .= "\n\t" . '</td>';
-			
+			$s .= "\n\t</td>";
+
 			foreach ($this->cells2 as $c) {
 				$s .= $c[2] ? "\n$c[2]" : '';
-				$s .= "\n\t" . '<td align="right" nowrap="nowrap"' . ($c[0] ? " $c[0]" : '') . '>';
+				$s .= "\n\t<td align=\"right\" nowrap=\"nowrap\"" . ($c[0] ? " $c[0]" : '') . '>';
 				$s .= $c[1] ? "\n\t$c[1]" : '&nbsp;';
-				$s .= "\n\t" . '</td>';
+				$s .= "\n\t</td>";
 				$s .= $c[3] ? "\n\t$c[3]" : '';
 			}
+
 			$s .= "\n</tr>\n</table>";
 		}
 		echo "$s";

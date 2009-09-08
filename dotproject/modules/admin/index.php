@@ -1,12 +1,13 @@
-<?php /* $Id$ */
-if (!defined('DP_BASE_DIR')) {
+<?php /* $Id: index.php 5773 2008-07-21 15:04:07Z merlinyoda $ */
+if (!defined('DP_BASE_DIR')){
 	die('You should not access this file directly.');
 }
 
-if (!(getPermission($m, 'view'))) {
+$perms =& $AppUI->acl();
+if (! $perms->checkModule($m, 'view')) {
 	$AppUI->redirect('m=public&a=access_denied');
 }
-if (!(getPermission('users', 'view'))) {
+if (! $perms->checkModule('users', 'view')) {
 	$AppUI->redirect('m=public&a=access_denied');
 }
 
@@ -46,17 +47,33 @@ $q = new DBQuery;
 
 // Pull First Letters
 $let = ":";
+$q->addTable('users','u');
+$q->addQuery('DISTINCT UPPER(SUBSTRING(user_username, 1, 1)) AS L');
+$arr = $q->loadList();
+foreach($arr as $L) {
+	$let .= $L['L'];
+}
+$q->clear();
 
 $q->addTable('users','u');
-$q->addJoin('contacts', 'con', 'con.contact_id = u.user_contact');
-$q->addQuery('DISTINCT UPPER(SUBSTRING(u.user_username, 1, 1)) AS L' 
-			 . ', UPPER(SUBSTRING(con.contact_first_name, 1, 1)) AS CF' 
-			 . ', UPPER(SUBSTRING(con.contact_last_name, 1, 1)) AS CL');
+$q->addQuery('DISTINCT UPPER(SUBSTRING(contact_first_name, 1, 1)) AS L');
+$q->addJoin('contacts', 'con', 'contact_id = user_contact');
 $arr = $q->loadList();
-foreach ($arr as $L) {
-	$let .= mb_strpos($let, $L['L']) ? '' : $L['L'];
-	$let .= mb_strpos($let, $L['CF']) ? '' : $L['CF'];
-	$let .= mb_strpos($let, $L['CL']) ? '' : $L['CL'];
+foreach($arr as $L) {
+	if ($L['L']) {
+		$let .= strpos($let, $L['L']) ? '' : $L['L'];
+	}
+}
+$q->clear();
+
+$q->addTable('users','u');
+$q->addQuery('DISTINCT UPPER(SUBSTRING(contact_last_name, 1, 1)) AS L');
+$q->addJoin('contacts', 'con', 'contact_id = user_contact');
+$arr = $q->loadList();
+foreach($arr as $L) {
+	if ($L['L']) {
+		$let .= strpos($let, $L['L']) ? '' : $L['L'];
+	}
 }
 $q->clear();
 
@@ -66,7 +83,7 @@ $a2z .= '<td width="100%" align="right">' . $AppUI->_('Show'). ': </td>';
 $a2z .= '<td><a href="./index.php?m=admin&stub=0">' . $AppUI->_('All') . '</a></td>';
 for ($c=65; $c < 91; $c++) {
 	$cu = chr($c);
-	$cell = ((mb_strpos($let, $cu) > 0) 
+	$cell = ((strpos($let, $cu) > 0) 
 	         ? '<a href="?m=admin&stub=' . $cu . '">' . $cu . '</a>' 
 	         : '<font color="#999999">' . $cu . '</font>');
 	$a2z .= "\n\t<td>" . $cell . '</td>';

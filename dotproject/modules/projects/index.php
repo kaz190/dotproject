@@ -1,4 +1,4 @@
-<?php  /* PROJECTS $Id$ */
+<?php  /* PROJECTS $Id: index.php 5776 2008-07-22 13:36:04Z merlinyoda $ */
 if (!defined('DP_BASE_DIR')) {
 	die('You should not access this file directly.');
 }
@@ -54,8 +54,8 @@ $department = (($AppUI->getState('ProjIdxDepartment') !== NULL)
 
 //if $department contains the $company_prefix string that it's requesting a company and not a department.  So, clear the 
 // $department variable, and populate the $company_id variable.
-if (!(mb_strpos($department, $company_prefix)===false)) {
-	$company_id = mb_substr($department,mb_strlen($company_prefix));
+if (!(strpos($department, $company_prefix)===false)) {
+	$company_id = substr($department,strlen($company_prefix));
 	$AppUI->setState('ProjIdxCompany', $company_id);
 	unset($department);
 }
@@ -107,7 +107,6 @@ if (($rows = db_loadList($usersql, NULL))) {
 		                . ' (' . $row['user_username'] . ') </option>');
 	}
 }
-$bufferUser .= '</select>';
 
 /* setting this to filter project_list_data function below
  0 = undefined
@@ -120,7 +119,7 @@ they'll need to change here as well (sadly).
 */
 if ($tab != 7 && $tab != 8) {
 	$project_status = $tab;
-} else if ($tab == 0) {
+} elseif ($tab == 0) {
 	$project_status = 0;
 }
 if ($tab == 5 || $tab == 7) {
@@ -135,16 +134,16 @@ projects_list_data();
 // setup the title block
 $titleBlock = new CTitleBlock('Projects', 'applet3-48.png', $m, ($m . '.' . $a));
 $titleBlock->addCell($AppUI->_('Owner') . ':');
-$titleBlock->addCell(('<form action="?m=projects" method="post" name="pickUser">' . "\n" 
-                      . $bufferUser . "\n" . '</form>' . "\n"));
+$titleBlock->addCell($bufferUser, '', '<form action="?m=projects" method="post" name="pickUser">'
+                     , '</form>');
 $titleBlock->addCell($AppUI->_('Company') . '/' . $AppUI->_('Division') . ':');
-$titleBlock->addCell(('<form action="?m=projects" method="post" name="pickCompany">' . "\n" 
-                      . $buffer . "\n" .  '</form>' . "\n"));
+$titleBlock->addCell($buffer, '', '<form action="?m=projects" method="post" name="pickCompany">'
+                     , '</form>');
 $titleBlock->addCell();
 if ($canAuthor) {
-	$titleBlock->addCell(('<form action="?m=projects&amp;a=addedit" method="post">' . "\n" 
-	                      . '<input type="submit" class="button" value="' 
-	                      . $AppUI->_('new project') . '" />'. "\n" . '</form>' . "\n"));
+	$titleBlock->addCell('<input type="submit" class="button" value="' 
+	                     . $AppUI->_('new project') . '">', ''
+	                     ,'<form action="?m=projects&a=addedit" method="post">', '</form>');
 }
 $titleBlock->show();
 

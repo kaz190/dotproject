@@ -1,12 +1,12 @@
 <?php
-/* $Id$ */
-if (!defined('DP_BASE_DIR')) {
+/* $Id: config.inc.php 5035 2007-06-09 14:02:00Z caseydk $ */
+if (!defined('DP_BASE_DIR')){
 	die('You should not access this file directly.');
 }
 
 // reply-to address for staff followups
 // i.e. the address the gateway receives
-if (! isset($dPconfig['site_domain'])) {
+if ( ! isset($dPconfig['site_domain'])) {
   $dPconfig['site_domain'] = "dotproject.net";
 }
 
@@ -26,7 +26,9 @@ $CONFIG["heading_color"] = "#cc0000";
 $CONFIG["ticket_color"] = "#ffffee";
 
 // date format
-$CONFIG["date_format"] = "D M j Y g:ia";
+//$CONFIG["date_format"] = "D M j Y g:ia";
+$CONFIG["date_format"] = "Y/m/d"; //JP Date Format Y年m月d日=＞ %Y/%m/%d　
+
 
 // visual warnings for old tickets
 $CONFIG["warning_active"]= 1; // 0 = inactive, 1 = active
@@ -34,12 +36,14 @@ $CONFIG["warning_color"] = "#ff0000";
 $CONFIG["warning_age"] = "0.5"; // in hours
 
 // priority names (low to high)
-$CONFIG["priority_names"] = array_map(array($AppUI,'_'), (array)dPgetSysVal('TicketPriority'));
+$CONFIG["priority_names"] = array_map(array($AppUI,'_'), (array)dPgetSysVal( 'TicketPriority' ));
 
 // priority colors (low to high)
 $CONFIG["priority_colors"] = array("#006600","#000000","#ff0000","#ff0000","#ff0000");
 
-$CONFIG["type_names"] = dPgetSysVal('TicketStatus');
+//$CONFIG["type_names"] = dPgetSysVal( 'TicketStatus' );//Added Itsutsubashi@KSen-20090814
+$CONFIG["type_names"] = array_map(array($AppUI,'_'), (array)dPgetSysVal( 'TicketStatus' ));
+
 // number of tickets to see at once
 $CONFIG["view_rows"] = 40;
 

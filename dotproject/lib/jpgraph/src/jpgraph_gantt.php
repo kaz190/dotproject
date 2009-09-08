@@ -4,7 +4,7 @@
 // Description:	JpGraph Gantt plot extension
 // Created: 	2001-11-12
 // Author:	Johan Persson (johanp@aditus.nu)
-// Ver:		$Id$
+// Ver:		$Id: jpgraph_gantt.php 3904 2006-02-28 19:46:57Z gregorerhardt $
 //
 // Copyright (c) Aditus Consulting. All rights reserved.
 //========================================================================
@@ -2616,8 +2616,14 @@ class GanttScale {
 		if( $this->week->iStyle==WEEKSTYLE_WNBR )
 		    $txt = sprintf($this->week->iLabelFormStr,$weeknbr);
 		elseif( $this->week->iStyle==WEEKSTYLE_FIRSTDAY || 
-			$this->week->iStyle==WEEKSTYLE_FIRSTDAYWNBR ) 
-		    $txt = date("j/n",$week);
+			$this->week->iStyle==WEEKSTYLE_FIRSTDAYWNBR ) {
+				global $AppUI;
+				$datefmt = 'j/n';
+				if ($AppUI->user_locale == 'ja') {
+					$datefmt = 'n/j';
+				}
+				$txt = date($datefmt, $week);
+			}
 		elseif( $this->week->iStyle==WEEKSTYLE_FIRSTDAY2 || 
 			$this->week->iStyle==WEEKSTYLE_FIRSTDAY2WNBR ) {
 		    $monthnbr = date("n",$week)-1;

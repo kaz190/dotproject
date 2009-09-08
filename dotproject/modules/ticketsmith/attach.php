@@ -1,16 +1,16 @@
 <?php
-if (!defined('DP_BASE_DIR')) {
+if (!defined('DP_BASE_DIR')){
   die('You should not access this file directly.');
 }
 
 if (!$canEdit) {
-	$AppUI->redirect("m=public&a=access_denied");
+	$AppUI->redirect( "m=public&a=access_denied" );
 }
 
-$ticket = dPgetParam($_GET, 'ticket', '');
+$ticket = dPgetParam( $_GET, 'ticket', '');
 
-$titleBlock = new CTitleBlock('Link Ticket', 'gconf-app-icon.php', $m, "$m.$a");
-$titleBlock->addCrumb("?m=ticketsmith", "tickets list");
+$titleBlock = new CTitleBlock( 'Link Ticket', 'gconf-app-icon.php', $m, "$m.$a");
+$titleBlock->addCrumb( "?m=ticketsmith", "tickets list" );
 $titleBlock->show();
 
 require(DP_BASE_DIR."/modules/ticketsmith/config.inc.php");
@@ -58,7 +58,7 @@ $title = "Assign ticket to parent";
 ?>
 <table class="tbl" width="100%">
 <tr>
-	<td colspan="<?php echo count($fields["headings"]);?>" align="center">
+	<td colspan="<?php echo count( $fields["headings"] );?>" align="center">
 		<table width="100%" border="0" cellspacing="1" cellpadding="1">
 		<tr>
 			<td width="33%"></td>
@@ -89,7 +89,7 @@ $query = "SELECT $select_fields FROM tickets WHERE ";
 if ($type == "My") {
     $query .= "type = 'Open' AND (assignment = '$user_cookie' OR assignment = '0') AND ";
 }
-else if ($type != "All") {
+elseif ($type != "All") {
     $query .= "type = '$type' AND ";
 }
 $query .= "ticket != $ticket AND ";
@@ -134,9 +134,15 @@ if ($parent_count) {
  else {
     print("<tr height=25>\n");
     print("<td align=center colspan=" . count($fields["headings"]) . ">\n");
+	if ($AppUI->user_locale == 'ja') {
+		print($type == 'All' ? '' : strtolower($AppUI->_($type)));
+		print($AppUI->_('tickets'));
+		print($AppUI->_('There are no')."\n");
+	} else {
     print($AppUI->_('There are no')." ");
-    print($type == "All" ? "" : mb_strtolower($AppUI->_($type)) . " ");
-    print($AppUI->_('tickets').".\n");
+    print($type == "All" ? "" : strtolower($AppUI->_($type)) . " ");
+	print($AppUI->_('tickets').".\n");
+	}
     print("</td>\n");
     print("</tr>\n");
 }

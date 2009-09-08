@@ -1,5 +1,5 @@
 #
-# $Id$
+# $Id: upgrade_21rc2_to_21.sql 5427 2007-10-14 02:54:33Z ajdonnison $
 # 
 # DO NOT USE THIS SCRIPT DIRECTLY - USE THE INSTALLER INSTEAD.
 #

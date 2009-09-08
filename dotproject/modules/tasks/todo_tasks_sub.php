@@ -1,5 +1,5 @@
 <?php
-if (!defined('DP_BASE_DIR')) {
+if (!defined('DP_BASE_DIR')){
   die('You should not access this file directly.');
 }
 
@@ -8,8 +8,8 @@ global $m, $a, $date, $other_users, $showPinned, $showArcProjs;
 global $showHoldProjs, $showDynTasks, $showLowTasks, $showEmptyDate, $user_id;
 global $task_sort_item1, $task_sort_type1, $task_sort_order1;
 global $task_sort_item2, $task_sort_type2, $task_sort_order2;
-
-$canDelete = getPermission($m, 'delete');
+$perms =& $AppUI->acl();
+$canDelete = $perms->checkModuleItem($m, 'delete');
 $q = new DBQuery();
 ?>
 
@@ -111,6 +111,7 @@ $df = $AppUI->getPref('SHDATEFORMAT');
 
 // generate the 'due in' value
 foreach ($tasks as $tId=>$task) {
+	$sign = 1;
 	$start = intval(@$task["task_start_date"]) ? new CDate($task["task_start_date"]) : null;
 	$end = intval(@$task["task_end_date"]) ? new CDate($task["task_end_date"]) : null;
 	
@@ -118,8 +119,12 @@ foreach ($tasks as $tId=>$task) {
 		$end = $start;
 		$end->addSeconds(@$task["task_duration"]*$task["task_duration_type"]*SEC_HOUR);
 	}
-	
-	$days = (($end) ? $end->dateDiff($now) : null);
+
+	if ($end && $now->after($end)) {
+		$sign = -1;
+	} 
+
+	$days = $end ? $now->dateDiff($end) * $sign : null;
 	$tasks[$tId]['task_due_in'] = $days;
 
 }
@@ -142,7 +147,7 @@ if ($task_sort_item1 != '') {
 		if ($tasks[$j]['task_end_date'] == '0000-00-00 00:00:00' 
 		    || $tasks[$j]['task_end_date'] == '') {
 			if ($tasks[$j]['task_start_date'] == '0000-00-00 00:00:00' 
-			    || $tasks[$j]['task_start_date'] == '') {
+			    || $tasks[$j]['task_start_date'] == ''){
 				//just to be sure start date is "zeroed"
 				$tasks[$j]['task_start_date'] = '0000-00-00 00:00:00'; 
 				$tasks[$j]['task_end_date'] = '0000-00-00 00:00:00';
@@ -165,7 +170,7 @@ if (dPgetConfig('direct_edit_assignment')) {
 	</td>
 	<td colspan="3" align="center">
 <?php
-	foreach ($priorities as $k => $v) {
+	foreach($priorities as $k => $v) {
 		$options[$k] = $AppUI->_('set priority to ' . $v, UI_OUTPUT_RAW);
 	}
 	$options['c'] = $AppUI->_('mark as finished', UI_OUTPUT_RAW);

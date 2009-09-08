@@ -1,4 +1,4 @@
-// $Id$
+// $Id: view.js 3073 2005-03-19 05:58:52Z ajdonnison $
 // Task view support routines.
 function popEmailContacts() {
 	updateEmailContacts();

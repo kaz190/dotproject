@@ -1,18 +1,20 @@
-<?php /* TASKS $Id$ */
-if (!defined('DP_BASE_DIR')) {
+<?php /* TASKS $Id: do_task_aed.php 5731 2008-06-06 23:02:31Z merlinyoda $ */
+if (!defined('DP_BASE_DIR')){
 	die('You should not access this file directly.');
 }
 
-
-$adjustStartDate = dPgetParam($_POST, 'set_task_start_date');
-$del = dPgetParam($_POST, 'del', 0);
-$task_id = dPgetParam($_POST, 'task_id', 0);
-$hassign = dPgetParam($_POST, 'hassign');
-$hperc_assign = dPgetParam($_POST, 'hperc_assign');
-$hdependencies = dPgetParam($_POST, 'hdependencies');
-$notify = dPgetParam($_POST, 'task_notify', 0);
-$comment = dPgetParam($_POST, 'email_comment','');
-$sub_form = dPgetParam($_POST, 'sub_form', 0);
+function setItem($item_name, $defval = null) {
+	return ((isset($_POST[$item_name])) ? $_POST[$item_name] : $defval);
+}
+$adjustStartDate = setItem('set_task_start_date');
+$del = isset($_POST['del']) ? $_POST['del'] : 0;
+$task_id = setItem('task_id', 0);
+$hassign = setItem('hassign');
+$hperc_assign = setItem('hperc_assign');
+$hdependencies = setItem('hdependencies');
+$notify = setItem('task_notify', 0);
+$comment = setItem('email_comment','');
+$sub_form = isset($_POST['sub_form']) ? $_POST['sub_form'] : 0;
 
 if ($sub_form) {
 	// in add-edit, so set it to what it should be
@@ -75,7 +77,7 @@ if ($sub_form) {
 	
 	// Map task_dynamic checkboxes to task_dynamic values for task dependencies.
 	if ($obj->task_dynamic != 1) {
-		$task_dynamic_delay = dPgetParam($_POST, 'task_dynamic_nodelay', '0');
+		$task_dynamic_delay = setItem('task_dynamic_nodelay', '0');
 		if (in_array($obj->task_dynamic, $tracking_dynamics)) {
 			$obj->task_dynamic = $task_dynamic_delay ? 21 : 31;
 		} else {
@@ -83,12 +85,14 @@ if ($sub_form) {
 		}
 	}
     
-	// Make sure checkboxes are set or reset as appropriately
-	$checkbox_properties = array('task_dynamic', 'task_milestone', 'task_notify');
-	foreach ($checkbox_properties as $task_property) {
-		if (!(array_key_exists($task_property, $_POST))) {
-			$obj->$task_property = false;
-		}
+	// Let's check if task_dynamic is unchecked
+	if(!(array_key_exists('task_dynamic', $_POST))){
+		$obj->task_dynamic = false;
+	}
+	
+	// Make sure task milestone is set or reset as appropriate
+	if (!(isset($_POST['task_milestone']))) {
+		$obj->task_milestone = false;
 	}
 	
 	//format hperc_assign user_id=percentage_assignment;user_id=percentage_assignment;user_id=percentage_assignment;
@@ -100,7 +104,7 @@ if ($sub_form) {
 	}
 	
 	// let's check if there are some assigned departments to task
-	$obj->task_departments = implode(',', dPgetParam($_POST, 'dept_ids', array()));
+	$obj->task_departments = implode(',', setItem('dept_ids', array()));
 	
 	// convert dates to SQL format first
 	if ($obj->task_start_date) {
@@ -109,7 +113,7 @@ if ($sub_form) {
 	}
 	$end_date = null;
 	if ($obj->task_end_date) {
-		if (mb_strpos($obj->task_end_date, '2400') !== false) {
+		if (strpos($obj->task_end_date, '2400') !== false) {
 		  $obj->task_end_date = str_replace('2400', '2359', $obj->task_end_date);
 		}
 		$end_date = new CDate($obj->task_end_date);

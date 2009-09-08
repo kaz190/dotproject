@@ -16,7 +16,7 @@
 // | Authors: Paul M. Jones <pjones@ciaweb.net>                           | 
 // +----------------------------------------------------------------------+ 
 // 
-// $Id$
+// $Id: Contact_Vcard_Build.php 1580 2003-09-15 09:59:57Z gregorerhardt $
 
 //dP dotproject | gregorerhardt 20030909:
 //dP commented out some lines for running without PEAR base class
@@ -45,7 +45,7 @@
 * 
 * @author Paul M. Jones <pjones@ciaweb.net>
 * @package Contact_Vcard
-* @version $Revision$
+* @version $Revision: 1580 $
 * 
 */
 

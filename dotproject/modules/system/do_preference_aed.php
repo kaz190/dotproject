@@ -1,5 +1,5 @@
-<?php /* SYSTEM $Id$ */
-if (!defined('DP_BASE_DIR')) {
+<?php /* SYSTEM $Id: do_preference_aed.php 5711 2008-05-16 23:31:00Z merlinyoda $ */
+if (!defined('DP_BASE_DIR')){
   die('You should not access this file directly.');
 }
 

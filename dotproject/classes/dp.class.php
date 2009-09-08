@@ -1,12 +1,12 @@
-<?php /* CLASSES $Id$ */
+<?php /* CLASSES $Id: dp.class.php 5727 2008-06-04 22:44:25Z merlinyoda $ */
 
 /**
  *	@package dotproject
  *	@subpackage modules
- *	@version $Revision$
+ *	@version $Revision: 5727 $
  */
 
-if (!defined('DP_BASE_DIR')) {
+if (!defined('DP_BASE_DIR')){
 	die('You should not access this file directly.');
 }
 
@@ -36,10 +36,7 @@ class CDpObject {
 	 *	@var string Error message
 	 */
 	var $_error = '';
-	/**
-	 *	@var string generic message
-	 */
-	var $_message;
+	
 	/**
 	 * @var object Query Handler
 	 */
@@ -58,7 +55,7 @@ class CDpObject {
 		$this->_tbl_key = $key;
 		$this->_permission_name = (($perm_name) ? $perm_name : $table);
 		dPgetConfig('dbprefix', '');
-		$this->_query =& new DBQuery;
+		$this->_query = new DBQuery;
 	}
 	/**
 	 *	@return string Returns the error message
@@ -273,10 +270,9 @@ class CDpObject {
 				return false;
 			}
 			$msg = array();
-			$i = 0;
 			foreach ($joins as $table) {
 				$table_alias = 't' . $i++;
-				$k = $table['idfield'] . $table_alias;
+				$k = $table['idfield'];
 				if ($obj->$k) {
 					$msg[] = $table_alias . '.' . $AppUI->_($table['label']);
 				}
@@ -324,13 +320,11 @@ class CDpObject {
 	 *	@return array
 	 */
 	function getDeniedRecords($uid) {
-		global $AppUI;
-		$perms =& $AppUI->acl();
-		
 		$uid = intval($uid);
 		$uid || exit ('FATAL ERROR<br />' . get_class($this) 
 		              . '::getDeniedRecords failed, user id = 0');
 		
+		$perms =& $GLOBALS['AppUI']->acl();
 		return $perms->getDeniedItems($this->_tbl, $uid);
 	}
 	
@@ -345,9 +339,7 @@ class CDpObject {
 	 */
 	// returns a list of records exposed to the user
 	function getAllowedRecords($uid, $fields='*', $orderby='', $index=null, $extra=null) {
-		global $AppUI;
-		$perms =& $AppUI->acl();
-		
+		$perms =& $GLOBALS['AppUI']->acl();
 		$uid = intval($uid);
 		$uid || exit ('FATAL ERROR<br />' . get_class($this) . '::getAllowedRecords failed');
 		$deny =& $perms->getDeniedItems($this->_tbl, $uid);
@@ -385,16 +377,13 @@ class CDpObject {
 		return $this->_query->loadHashList($index);
 	}
 	
-	function getAllowedSQL($uid, $index = null, $alt_mod = null) {
-		global $AppUI;
-		$perms =& $AppUI->acl();
-		$mod = ((isset($alt_mod)) ? $alt_mod : $this->_tbl);
-		
+	function getAllowedSQL($uid, $index = null) {
+		$perms =& $GLOBALS['AppUI']->acl();
 		$uid = intval($uid);
 		$uid || exit ('FATAL ERROR<br />' . get_class($this) . '::getAllowedSQL failed');
-		$deny =& $perms->getDeniedItems($mod, $uid);
-		$allow =& $perms->getAllowedItems($mod, $uid);
-		if (!($perms->checkModule($mod, 'view', $uid))) {
+		$deny =& $perms->getDeniedItems($this->_tbl, $uid);
+		$allow =& $perms->getAllowedItems($this->_tbl, $uid);
+		if (!($perms->checkModule($this->_tbl, 'view', $uid))) {
 			if (!(count($allow))) {
 				return array('1=0');	// No access, and no allow overrides, so nothing to show.
 			}
@@ -416,23 +405,20 @@ class CDpObject {
 		return $where;
 	}
 	
-	function setAllowedSQL($uid, &$query, $index = null, $key = null, $alt_mod = null) {
-		global $AppUI;
-		$perms =& $AppUI->acl();
-		$mod = ((isset($alt_mod)) ? $alt_mod : $this->_tbl);
-		
+	function setAllowedSQL($uid, &$query, $index = null, $key = null) {
+		$perms =& $GLOBALS['AppUI']->acl();
 		$uid = intval($uid);
 		$uid || exit ('FATAL ERROR<br />' . get_class($this) . '::getAllowedSQL failed');
-		$deny =& $perms->getDeniedItems($mod, $uid);
-		$allow =& $perms->getAllowedItems($mod, $uid);
+		$deny =& $perms->getDeniedItems($this->_tbl, $uid);
+		$allow =& $perms->getAllowedItems($this->_tbl, $uid);
 		// Make sure that we add the table otherwise dependencies break
 		if (isset($index)) {
 			if (!($key)) {
-				$key = mb_substr($this->_tbl, 0, 2);
+				$key = substr($this->_tbl, 0, 2);
 			}
 			$query->leftJoin($this->_tbl, $key, ($key . '.' . $this->_tbl_key . ' = ' . $index));
 		}
-		if (!($perms->checkModule($mod, 'view', $uid))) {
+		if (!($perms->checkModule($this->_tbl, 'view', $uid))) {
 			if (!(count($allow))) {
 				// We need to ensure that we don't just break complex SQLs, but
 				// instead limit to a nonsensical value.  This assumes that the

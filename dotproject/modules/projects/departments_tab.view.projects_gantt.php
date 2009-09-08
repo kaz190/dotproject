@@ -1,29 +1,30 @@
-<?php /* PROJECTS $Id$ */
-if (!defined('DP_BASE_DIR')) {
+<?php /* PROJECTS $Id: departments_tab.view.projects_gantt.php 5675 2008-04-16 01:54:04Z merlinyoda $ */
+if (!defined('DP_BASE_DIR')){
 	die('You should not access this file directly.');
 }
 
 global $m, $a, $addPwOiD, $AppUI, $buffer, $company_id, $department, $dept_id, $dept_ids, $min_view;
 global $priority, $projects, $tab, $user_id;
 
+$perms =& $AppUI->acl();
 $df = $AppUI->getPref('SHDATEFORMAT');
 
 $department = isset($_GET['dept_id']) ? $_GET['dept_id'] : (isset($department) ? $department : 0);
 
-$projFilter_extra = array('-4' => 'All w/o archived');
+$projFilter_extra = array( '-4' => 'All w/o archived');
 
 // load the companies class to retrieved denied companies
-require_once($AppUI->getModuleClass('companies'));
+require_once( $AppUI->getModuleClass( 'companies' ) );
 
 // retrieve any state parameters
-if (isset($_GET['tab'])) {
-	$AppUI->setState('DeptProjIdxTab', $_GET['tab']);
+if (isset( $_GET['tab'] )) {
+	$AppUI->setState( 'DeptProjIdxTab', $_GET['tab'] );
 }
 
 if (isset($_POST['show_form'])) {
-	$AppUI->setState('addProjWithOwnerInDep',  dPgetParam($_POST, 'add_pwoid', 0));
+	$AppUI->setState( 'addProjWithOwnerInDep',  dPgetParam($_POST, 'add_pwoid', 0) );
 }
-$addPwOiD = $AppUI->getState('addProjWithOwnerInDep') ? $AppUI->getState('addProjWithOwnerInDep') : 0;
+$addPwOiD = $AppUI->getState( 'addProjWithOwnerInDep' ) ? $AppUI->getState( 'addProjWithOwnerInDep' ) : 0;
 
 $extraGet = '&user_id='.$user_id;
 ?>

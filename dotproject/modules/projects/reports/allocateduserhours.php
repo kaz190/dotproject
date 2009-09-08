@@ -77,16 +77,16 @@ function setCalendar(idate, fdate) {
 	</td>
 </tr>
 <tr>
-	<td nowrap="nowrap" colspan="3" align="center">
+	<td nowrap="nowrap" colspan="3" align="left">
 		<input type="checkbox" name="log_all_projects" id="log_all_projects" <?php if ($log_all_projects) echo 'checked="checked"' ?> />
 		<label for="log_all_projects"><?php echo $AppUI->_('Log All Projects');?></label>
 	   <input type="checkbox" name="use_assigned_percentage" id="use_assigned_percentage" <?php if ($use_assigned_percentage) echo 'checked="checked"' ?> />
-	   <labe for="use_assigned_percentage"><?php echo $AppUI->_('Use assigned percentage');?></label>
+	   <label for="use_assigned_percentage"><?php echo $AppUI->_('Use assigned percentage');?></label>
 	
 	   <input type="checkbox" name="hideNonWd" id="hideNonWd" <?php if ($hideNonWd) echo 'checked="checked"' ?> />
 	   <label for="hideNonWd"><?php echo $AppUI->_('Hide non-working days');?></label>
 	</td>	
-	<td align="left" width="50%" nowrap="nowrap">
+	<td align="right" width="50%" nowrap="nowrap">
 		<input class="button" type="submit" name="do_report" value="<?php echo $AppUI->_('submit');?>" />
 	</td>
 </tr>
@@ -133,10 +133,10 @@ if ($do_report) {
 		$q->addWhere("t.task_project='$project_id'");
 	}
 
-	$proj =& new CProject;
+	$proj = new CProject;
 	$proj->setAllowedSQL($AppUI->user_id, $q);
 
-	$obj =& new CTask;
+	$obj = new CTask;
 	$obj->setAllowedSQL($AppUI->user_id, $q);
 	
 	$task_list_hash   = $q->loadHashList('task_id');
@@ -175,7 +175,7 @@ if ($do_report) {
 			
 			if ($coarseness == 1) {
 				userUsageDays();
-			} else if ($coarseness == 7) {
+			} elseif ($coarseness == 7) {
 				userUsageWeeks();
 			}
 			
@@ -183,7 +183,7 @@ if ($do_report) {
 	
 		if ($coarseness == 1) {
 			showDays();
-		} else if ($coarseness == 7) {
+		} elseif ($coarseness == 7) {
 			showWeeks();
 		}
 		?>
@@ -236,7 +236,7 @@ function userUsageWeeks() {
 GLOBAL $task_start_date, $task_end_date, $day_difference, $hours_added, $actual_date, $users, $user_data, $user_usage,$use_assigned_percentage, $user_tasks_counted_in, $task, $start_date, $end_date;
 
 	$task_duration_per_week = $task->getTaskDurationPerWeek($use_assigned_percentage);
-	setlocale(LC_ALL, 'en_AU'.(($locale_char_set)? ('.' . $locale_char_set) : '.utf8'));
+	setlocale(LC_TIME, 'en_AU');
 	$ted = new CDate(Date_Calc::endOfWeek($task_end_date->day,$task_end_date->month,$task_end_date->year));
 	$tsd = new CDate(Date_Calc::beginOfWeek($task_start_date->day,$task_start_date->month,$task_start_date->year));
 	$ed = new CDate(Date_Calc::endOfWeek($end_date->day,$end_date->month,$end_date->year));
@@ -249,7 +249,7 @@ GLOBAL $task_start_date, $task_end_date, $day_difference, $hours_added, $actual_
 
 	for ($i = 0; $i<=$week_difference; $i++) {
 		if (!$actual_date->before($tsd) && !$actual_date->after($ted)) {
-			setlocale(LC_ALL, 'en_AU'.(($locale_char_set)? ('.' . $locale_char_set) : '.utf8'));
+			setlocale(LC_TIME, 'en_AU');
 			$awoy = $actual_date->year.Date_Calc::weekOfYear($actual_date->day,$actual_date->month,$actual_date->year);
 			setlocale(LC_ALL, $AppUI->user_lang);
 			foreach ($users as $user_id => $user_data) {
@@ -292,7 +292,7 @@ GLOBAL   $allocated_hours_sum, $end_date, $start_date, $AppUI, $user_list, $user
 	$working_days_count = 0;
 	$allocated_hours_sum = 0;
 
-	setlocale(LC_ALL, 'en_AU'.(($locale_char_set)? ('.' . $locale_char_set) : '.utf8'));
+	setlocale(LC_TIME, 'en_AU');
 	$ed = new CDate(Date_Calc::endOfWeek($end_date->day,$end_date->month,$end_date->year));
 	$sd = new CDate(Date_Calc::beginOfWeek($start_date->day,$start_date->month,$start_date->year));
 	setlocale(LC_ALL, $AppUI->user_lang);
@@ -317,7 +317,7 @@ GLOBAL   $allocated_hours_sum, $end_date, $start_date, $AppUI, $user_list, $user
 			$actual_date = $sd;
 /*
 			for ($i=0; $i<$week_difference; $i++) { 
-				setlocale(LC_ALL, 'en_AU'.(($locale_char_set)? ('.' . $locale_char_set) : '.utf8'));
+				setlocale(LC_TIME, 'en_AU');
 				$awoy = $actual_date->year.Date_Calc::weekOfYear($actual_date->day,$actual_date->month,$actual_date->year);
 				setlocale(LC_ALL, $AppUI->user_lang);
 

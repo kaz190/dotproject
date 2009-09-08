@@ -1,4 +1,4 @@
-<?php /* TASKS $Id$ */
+<?php /* TASKS $Id: todo.php 5761 2008-07-01 18:52:45Z merlinyoda $ */
 global $showEditCheckbox, $this_day, $other_users, $dPconfig, $user_id;
 
 if (!defined('DP_BASE_DIR')) {
@@ -8,6 +8,7 @@ if (!defined('DP_BASE_DIR')) {
 $showEditCheckbox = true;
 // Project status from sysval, defined as a constant
 $project_on_hold_status = 4;
+$perms =& $AppUI->acl();
 
 if (isset($_GET['tab'])) {
 	$AppUI->setState('ToDoTab', $_GET['tab']);
@@ -22,7 +23,7 @@ $user_id = $AppUI->user_id;
 $no_modify = false;
 $other_users = false;
 
-if (getPermission('admin','view')) {
+if ($perms->checkModule('admin','view')) {
 	// let's see if the user has sysadmin access
 	$other_users = true;
 	if (($show_uid = dPgetParam($_REQUEST, 'show_user_todo', 0)) != 0) {
@@ -36,7 +37,7 @@ if (getPermission('admin','view')) {
 }
 
 // check permissions
-$canEdit = getPermission($m, 'edit');
+$canEdit = $perms->checkModule($m, 'edit');
 
 // retrieve any state parameters
 if (isset($_POST['show_form'])) {
@@ -88,8 +89,8 @@ if (is_array($selected) && count($selected)) {
 
 $AppUI->savePlace();
 
-$proj =& new CProject;
-$tobj =& new CTask;
+$proj = new CProject;
+$tobj = new CTask;
 
 $allowedProjects = $proj->getAllowedSQL($AppUI->user_id);
 $allowedTasks = $tobj->getAllowedSQL($AppUI->user_id, 'ta.task_id');
@@ -193,7 +194,7 @@ if ($m == 'tasks' && $a == 'todo') {
 	$tabBox->add('tasks/todo_gantt_sub', 'My Gantt');
 	// Wouldn't it be better to user $tabBox->loadExtras('tasks', 'todo'); and then
 	// add tasks_tab.todo.my_open_requests.php in helpdesk?  
-	if ($AppUI->isActiveModule('helpdesk')) { 
+	if ($AppUI->isActiveModule('helpdesk')){ 
 		$tabBox->add('helpdesk/vw_idx_my', 'My Open Requests');
 	}
 	$tabBox->show();

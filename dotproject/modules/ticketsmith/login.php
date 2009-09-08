@@ -1,9 +1,9 @@
 <?php
-if (!defined('DP_BASE_DIR')) {
+if (!defined('DP_BASE_DIR')){
   die('You should not access this file directly.');
 }
 
-/* $Id$ */
+/* $Id: login.php 4800 2007-03-06 00:34:46Z merlinyoda $ */
 
 require(DP_BASE_DIR.'modules/ticketsmith/config.inc.php');
 require(DP_BASE_DIR.'modules/ticketsmith/common.inc.php');

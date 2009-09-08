@@ -1,5 +1,5 @@
-<?php /* PROJECTS $Id$ */
-if (!defined('DP_BASE_DIR')) {
+<?php /* PROJECTS $Id: tasklist.php 5784 2008-07-26 03:56:57Z ajdonnison $ */
+if (!defined('DP_BASE_DIR')){
   die('You should not access this file directly.');
 }
 
@@ -28,7 +28,7 @@ if ($period)
   $ts = $today->format(FMT_TIMESTAMP_DATE);
         if (strtok($period, " ") == $AppUI->_("Next"))
                 $sign = +1;
-        else //if (...)
+        else //if(...)
                 $sign = -1;
 
         $day_word = strtok(" ");
@@ -68,7 +68,7 @@ $end_date->setTime(23, 59, 59);
 
 var calendarField = '';
 
-function popCalendar(field) {
+function popCalendar(field){
 	calendarField = field;
 	idate = eval('document.editFrm.list_' + field + '.value');
 	window.open('index.php?m=public&a=calendar&dialog=1&callback=setCalendar&date=' + idate, 'calwin', 'width=250, height=220, scrollbars=no, status=no');
@@ -94,15 +94,26 @@ function setCalendar(idate, fdate) {
 	<input type="hidden" name="report_type" value="<?php echo $report_type;?>" />
 
 <tr>
-        <td align="right"><?php echo $AppUI->_('Default Actions'); ?>:</td>
+        <td align="left" width ="15%" ><?php echo $AppUI->_('Default Actions'); ?>:</td>
         <td nowrap="nowrap" colspan="2">
+          <?php
+            $jaflg = false;
+            if ($AppUI->user_locale == 'ja') {
+              $jaflg = true;
+			}
+			if ($jaflg) {
+		?><input class="text" type="field" size="2" name="pvalue" value="1" /><?php
+			}
+          ?>
           <input class="button" type="submit" name="period" value="<?php echo $AppUI->_('Previous Month'); ?>" />
           <input class="button" type="submit" name="period" value="<?php echo $AppUI->_('Previous Week'); ?>" />
           <input class="button" type="submit" name="period" value="<?php echo $AppUI->_('Previous Day'); ?>" />
           <input class="button" type="submit" name="period" value="<?php echo $AppUI->_('Next Day'); ?>" />
           <input class="button" type="submit" name="period" value="<?php echo $AppUI->_('Next Week'); ?>" />
           <input class="button" type="submit" name="period" value="<?php echo $AppUI->_('Next Month'); ?>" />
-        <input class="text" type="field" size="2" name="pvalue" value="1" /> - value for the previous buttons</td>
+        <?php
+        if (!$jaflg) {
+		?><input class="text" type="field" size="2" name="pvalue" value="1" /> - value for the previous buttons<?php } ?></td>
 <!--
         <td><input class="button" type="submit" name="do_report" value="<?php echo $AppUI->_('Previous Month'); ?>" onClick="set(-30)" /></td>
         <td><input class="button" type="submit" name="do_report" value="<?php echo $AppUI->_('Previous Week'); ?>" onClick="set(-7)" /></td>
@@ -112,13 +123,13 @@ function setCalendar(idate, fdate) {
 </tr>
 <tr>
 
-	<td align="right" nowrap="nowrap"><?php echo $AppUI->_('For period');?>:</td>
+	<td align="left" nowrap="nowrap"><?php echo $AppUI->_('For period');?>:</td>
 	<td nowrap="nowrap">
 		<input type="hidden" name="list_start_date" value="<?php echo $start_date->format(FMT_TIMESTAMP_DATE);?>" />
 		<input type="text" name="start_date" value="<?php echo $start_date->format($df);?>" class="text" disabled="disabled" />
 		<a href="#" onclick="popCalendar('start_date')">
 			<img src="./images/calendar.gif" width="24" height="12" alt="<?php echo $AppUI->_('Calendar');?>" border="0" />
-		</a>
+		</a> &nbsp;&nbsp; ~ &nbsp;&nbsp;
 		<input type="hidden" name="list_end_date" value="<?php echo $end_date ? $end_date->format(FMT_TIMESTAMP_DATE) : '';?>" />
 		<input type="text" name="end_date" value="<?php echo $end_date ? $end_date->format($df) : '';?>" class="text" disabled="disabled" />
 		<a href="#" onclick="popCalendar('end_date')">
@@ -148,7 +159,7 @@ if ($do_report) {
 	$q->addTable('projects', 'b');
 	$q->addQuery('a.*, b.project_name');
 	$q->addWhere('a.task_project = b.project_id');
-	if ($project_id != 0) { 
+	if ($project_id != 0){ 
 		$q->addWhere('task_project ='.$project_id);
 	}
 	if (!$log_all) {
@@ -159,7 +170,7 @@ if ($do_report) {
 		$q->addWhere("task_percent_complete < 100");
 	}
 
-	$obj =& new CTask;
+	$obj = new CTask;
 	$allowedTasks = $obj->getAllowedSQL($AppUI->user_id);
 	if (count($allowedTasks)) {
 		$obj->getAllowedSQL($AppUI->user_id, $q);
@@ -168,27 +179,27 @@ if ($do_report) {
 	$Task_List = $q->exec();
 
 	echo "<table cellspacing=\"1\" cellpadding=\"4\" border=\"0\" class=\"tbl\">";
-	if ($project_id==0) { echo "<tr><th>Project Name</th><th>Task Name</th>";} else {echo "<tr><th>Task Name</th>";}
-	echo "<th width=400>Task Description</th>";
-	echo "<th>Assigned To</th>";
-	echo "<th>Task Start Date</th>";
-	echo "<th>Task End Date</th>";
-	echo "<th>Completion</th></tr>";
+	if ($project_id==0) { echo '<tr><th>'.$AppUI->_('Project Name').'</th><th>'.$AppUI->_('Task Name').'</th>';} else {echo '<tr><th>'.$AppUI->_('Task Name').'</th>';}
+	echo '<th width=400>'.$AppUI->_('Task Description').'</th>';
+	echo '<th>'.$AppUI->_('Assigned To').'</th>';
+	echo '<th>'.$AppUI->_('Task Start Date').'</th>';
+	echo '<th>'.$AppUI->_('Task End Date').'</th>';
+	echo '<th>'.$AppUI->_('Completion').'</th></tr>';
 	
 	$pdfdata = array();
 	$tree = new CDpTree();
 
 	$columns = array(	
-	"<b>".$AppUI->_('Task Name')."</b>",
-	"<b>".$AppUI->_('Task Description')."</b>",
-	"<b>".$AppUI->_('Assigned To')."</b>",
-	"<b>".$AppUI->_('Task Start Date')."</b>",
-	"<b>".$AppUI->_('Task End Date')."</b>",
-	"<b>".$AppUI->_('Completion')."</b>"
+	"$AppUI->_('Task Name')",
+	"$AppUI->_('Task Description')",
+	"$AppUI->_('Assigned To')",
+	"$AppUI->_('Task Start Date')",
+	"$AppUI->_('Task End Date')",
+	"$AppUI->_('Completion')"
 	);
 	if ($project_id==0) { array_unshift($columns, "<b>".$AppUI->_('Project Name')."</b>");}		
 
-	while ($Tasks = db_fetch_assoc($Task_List)) {
+	while ($Tasks = db_fetch_assoc($Task_List)){
 		$Tasks['start_date'] = intval($Tasks['task_start_date']) ? new CDate($Tasks['task_start_date']) : ' ';
 		$Tasks['end_date'] = intval($Tasks['task_end_date']) ? new CDate($Tasks['task_end_date']) : ' ';
 		$task_id = $Tasks['task_id'];
@@ -219,74 +230,199 @@ if ($log_pdf) {
 		$q->addWhere('project_id='.(int)$project_id);
 		$pname = $q->loadResult();
 
-		$font_dir = DP_BASE_DIR.'/lib/ezpdf/fonts';
 		$temp_dir = DP_BASE_DIR.'/files/temp';
-		
-		require($AppUI->getLibraryClass('ezpdf/class.ezpdf'));
-
-		$pdf =& new Cezpdf($paper='A4',$orientation='landscape');
-		$pdf->ezSetCmMargins(1, 2, 1.5, 1.5);
-		$pdf->selectFont("$font_dir/Helvetica.afm");
-
-		$pdf->ezText(safe_utf8_decode(dPgetConfig('company_name')), 12);
-		// $pdf->ezText(dPgetConfig('company_name').' :: '.dPgetConfig('page_title'), 12);		
 
 		$date = new CDate();
-		$pdf->ezText("\n" . $date->format($df) , 8);
-
-		$pdf->selectFont("$font_dir/Helvetica-Bold.afm");
-		$pdf->ezText("\n" . safe_utf8_decode($AppUI->_('Project Task Report')), 12);
-		if ($project_id != 0) {$pdf->ezText(safe_utf8_decode($pname), 15);}
-		if ($log_all) {
-			$pdf->ezText("All task entries", 9);
-		} else {		
-			if ($end_date != ' ') {$pdf->ezText("Task entries from ".$start_date->format($df).' to '.$end_date->format($df), 9);} else {$pdf->ezText("Task entries from ".$start_date->format($df),9);}
-		}
-		$pdf->ezText("\n");
-		$pdf->selectFont("$font_dir/Helvetica.afm");
-		$columns = array(
-			'<b>'.safe_utf8_decode($AppUI->_('Task Name')).'</b>',
-			'<b>'.safe_utf8_decode($AppUI->_('Task Description')).'</b>',
-			'<b>'.safe_utf8_decode($AppUI->_('Assigned To')).'</b>',
-			'<b>'.safe_utf8_decode($AppUI->_('Task Start Date')).'</b>',
-			'<b>'.safe_utf8_decode($AppUI->_('Task End Date')).'</b>',
-			'<b>'.safe_utf8_decode($AppUI->_('Completion')).'</b>');
-		if ($project_id==0) {
-			$columns_add = array('<b>'.safe_utf8_decode($AppUI->_('Project Name')).'</b>');
-			$columns = array_merge($columns_add, $columns);
-		}
-		$title = null;
-		$options = array(
-			'showLines' => 2,
-			'showHeadings' => 1,
-			'fontSize' => 9,
-			'rowGap' => 4,
-			'colGap' => 5,
-			'xPos' => 50,
-			'xOrientation' => 'right',
-			'width'=>'750',
-			'shaded'=> 0,
-			'cols'=>array(0=>array('justification'=>'left','width'=>150),
-					2=>array('justification'=>'left','width'=>95),
-					3=>array('justification'=>'center','width'=>75),
-					4=>array('justification'=>'center','width'=>75),
-					5=>array('justification'=>'center','width'=>75))
+		$columns = array(	
+			$AppUI->_('Task Name'),
+			$AppUI->_('Task Description'),
+			$AppUI->_('Assigned To'),
+			$AppUI->_('Task Start Date'),
+			$AppUI->_('Task End Date'),
+			$AppUI->_('Completion')
 		);
+		$title = null;
 
-		$pdf->ezTable($pdfdata, $columns, $title, $options);
 
-		if ($fp = fopen($temp_dir.'/temp'.$AppUI->user_id.'.pdf', 'wb')) {
-			fwrite($fp, $pdf->ezOutput());
-			fclose($fp);
-			echo '<a href="'.DP_BASE_URL.'/files/temp/temp'.$AppUI->user_id.'.pdf" target="pdf">';
-			echo $AppUI->_("View PDF File");
-			echo "</a>";
-		} else {
-			echo "Could not open file to save PDF.  ";
-			if (!is_writable($temp_dir)) {
-				"The files/temp directory is not writable.  Check your file system permissions.";
+// ---------------------------------------------------------
+//Tcpdf Report Output [Itsutsubashi-K.Sen-200808-17] 
+
+//Itsutsubashi-K.Sen-20090814 
+require_once(DP_BASE_DIR .'/lib/tcpdf/config/lang/jpn.php');
+require_once(DP_BASE_DIR .'/lib/tcpdf/tcpdf.php');		
+		
+
+//Define Placement Parameters
+$header_w = 30;
+$header_h = 4;
+$header_line_gap = 5;
+$str_pad = 5;
+
+$l_gap = 0;
+$cell_height = 7;
+$width = 20; 
+$x_start = PDF_MARGIN_LEFT;
+$y_start = 10;
+$line_gap = 5;
+$x_max = 200;
+$y_max = 160;
+$x =  $x_start ;
+$y =  $y_start ;
+
+// create new PDF document
+$pdf = new TCPDF("L", PDF_UNIT, PDF_PAGE_FORMAT, true); 
+
+// set document information
+$pdf->SetCreator(PDF_CREATOR);
+//$pdf->SetAuthor();
+$pdf->SetTitle($AppUI->_('Project Task Report'));
+$pdf->SetSubject($AppUI->_('Report as PDF'));
+$pdf->SetKeywords("TCPDF, PDF");
+
+// remove default header/footer
+$pdf->setPrintHeader(false);
+$pdf->setPrintFooter(false);
+
+//set margins
+$pdf->SetMargins(PDF_MARGIN_LEFT, 10, PDF_MARGIN_RIGHT);
+
+//set auto page breaks
+$pdf->SetAutoPageBreak(TRUE, PDF_MARGIN_BOTTOM);
+
+//set image scale factor
+$pdf->setImageScale(PDF_IMAGE_SCALE_RATIO); 
+
+//set some language-dependent strings
+$pdf->setLanguageArray($l); 
+
+//initialize document
+$pdf->AliasNbPages();
+
+// add a page
+$pdf->AddPage();
+
+// ---------------------------------------------------------
+// set font
+$pdf->SetFont("arialunicid0","B", 12); //B= bold , I = Italic , U = Underlined
+
+//Document Header - Line1
+$slen = mb_strlen(dPgetConfig( 'company_name' )."\n") + $str_pad;
+$pdf->writeHTMLCell($header_w + $slen, $header_h, $x, $y,dPgetConfig( 'company_name' ));
+$pdf->writeHTMLCell($header_w, $header_h,  $x + $slen, $y,date("Y/m/d"));
+
+// (Width,Height,Text,Border,Align,Fill,Line,x,y,reset,stretch,ishtml,autopadding,maxh)
+
+// Line break - Line2
+$y = $y + $header_line_gap;
+
+// set font
+$pdf->SetFont("", "B", 12);
+
+// Title 
+$slen = mb_strlen($AppUI->_('Project Task Report')) + $str_pad;
+$pdf->writeHTMLCell($header_w + $slen, $header_h, $x, $y,$AppUI->_('Project Task Report'));
+
+// Line break - Line3
+$y = $y + $header_line_gap;
+
+	if ($log_all) {
+		$slen = mb_strlen($AppUI->_('All task entries')) + $str_pad;
+		$pdf->writeHTMLCell($header_w + $slen, $header_h, $x, $y,$AppUI->_('All task entries'));
+	} else {		
+			if( $end_date != ' ') {
+				$slen = mb_strlen($AppUI->_('Task entries from')."  ".$start_date->format($df).' ~ '.$end_date->format($df)) + $str_pad + 20;
+				$pdf->writeHTMLCell($header_w + $slen, $header_h, $x, $y,$AppUI->_('Task entries from')
+                                                                         ."  "
+                                                                         .$start_date->format($df)
+                                                                         .' ~ '
+                                                                         .$end_date->format($df));
+            } else {
+					$slen = mb_strlen($AppUI->_('Task entries from')."  ".$start_date->format($df)) + $str_pad;
+					$pdf->writeHTMLCell($header_w + $slen, $header_h, $x, $y,$AppUI->_('Task entries from')."  ".$start_date->format($df));
 			}
 		}
+
+// Line break - Line4
+$y = $y + $header_line_gap;
+$y = $y + $header_line_gap;
+$y = $y + $header_line_gap;
+
+// Column Header 
+
+// set font
+$pdf->SetFont("", "B", 10); //B= bold , I = Italic , U = Underlined
+
+$w = array(50, 90, 50, 30,30,20);  
+$x_init=$x;
+$pdf->SetFillColor(224, 235, 255);
+for($i = 0; $i < count($columns); $i++){ 
+    $pdf->writeHTMLCell($w[$i], $header_h, $x_init, $y,$columns[$i]."\n",0,0,1);
+    $x_init = $x_init + $w[$i];
+
+}
+ 
+// Line break - Line5
+$row_height = round($pdf->getLastH());
+$y = $y + $row_height;
+
+// Color and font restoration
+$pdf->SetFont("", "", 10); //B= bold , I = Italic , U = Underlined 
+$pdf->SetFillColor(224, 235, 255); 
+$pdf->SetTextColor(0); 
+
+// Data 
+$fill = 0; 
+$x_init = $x;$pdf->SetXY($x_init,$y);
+$max_rows = 1; 
+
+foreach($pdfdata as $rows) {
+    $lc = array();
+    for($i = 0; $i < count($rows); $i++)
+        $lc[] = $pdf->getNumLines($rows[$i],$w[$i]);
+ 
+    //Max no of Lines the row occupies
+    $linecount = max($lc);
+
+	for($i = 0; $i < count($rows); $i++){  
+		$pdf->MultiCell($w[$i], ($header_h * $linecount)+ $header_h, trim($rows[$i])."\n", 0, 'J', 0, 0, $x_init, $y, true);
+    	// $pdf->writeHTMLCell($w[$i], $row_height * $linecount, $x_init, $y,$rows[$i]."\n",0,0,0);
+    	$x_init = $x_init + $w[$i];$pdf->SetX($x_init);
+
+	} 
+
+	// Line break - Line X
+	$y = $y + ($header_h * $linecount)+ $header_h ; 
+    
+    if ($y > $y_max){
+        $pdf->AddPage();
+	    $y =  $y_start ;
+    }
+
+    $x_init = $x;$pdf->SetXY($x_init,$y);
+    $fill=!$fill;  
+} 
+
+// ---------------------------------------------------------
+//ob_end_clean();
+//Close and output PDF document
+$pdf->Output("$temp_dir/temp$AppUI->user_id.pdf", "F");//I for testing, D for Download, F Save to a File
+$temp_dir = dPgetConfig( 'root_dir' )."/files/temp";
+$base_url  = dPgetConfig( 'base_url' );
+
+// Create document body and pdf temp file
+
+	if ($fp = fopen( "$temp_dir/temp$AppUI->user_id.pdf", 'r' )) {
+		fclose( $fp );
+		echo "<a href=\"$base_url/files/temp/temp$AppUI->user_id.pdf\" target=\"pdf\">";
+		echo $AppUI->_( "View PDF File" );
+		echo "</a>";
+	} else {
+		echo "Could not open file to save PDF.  ";
+		if (!is_writable( $temp_dir ))
+			echo "The files/temp directory is not writable.  Check your file system permissions.";
+			}
+
+
 	}
 }
 ?>
@@ -329,14 +465,14 @@ function collate_pdf_task($depth, $task)
 
 	$data = array();
 	if ($project_id==0) {	
-		$data[] = safe_utf8_decode($task['project_name']);
+	//	$data[] = $task['project_name'];
 	}
-	$data[] = $spacer . safe_utf8_decode($task['task_name']);
-	$data[] = safe_utf8_decode($task['task_description']);
-	$data[] = safe_utf8_decode($task['users']);
+	$data[] = $spacer . $task['task_name'];
+	$data[] = $task['task_description'];
+	$data[] = $task['users'];
 	$data[] = safe_utf8_decode(($task['start_date'] != ' ') ? $task['start_date']->format($df) : ' ');
 	$data[] = safe_utf8_decode(($task['end_date'] != ' ') ? $task['end_date']->format($df) : ' ');
-	$data[] = safe_utf8_decode($task['task_percent_complete']."%");
+	$data[] = $task['task_percent_complete']."%";
 	$pdfdata[] = $data;
 	unset($data);
 }

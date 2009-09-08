@@ -1,4 +1,4 @@
-# $Id$
+# $Id: upgrade_101_to_102.sql 4848 2007-03-17 19:57:01Z caseydk $
 #
 # Upgrade dotProject DB Schema
 # Version 1.0.1 to release 1.0.2

@@ -1,4 +1,4 @@
-<?php /* SYSTEM $Id$*/
+<?php /* SYSTEM $Id: viewmods.php 5585 2007-12-19 23:38:33Z merlinyoda $*/
 if (!defined('DP_BASE_DIR')) {
 	die('You should not access this file directly.');
 }
@@ -66,7 +66,7 @@ foreach ($modules as $row) {
 		$s .= '<area coords="0,8,10,14" href="' . $query_string . '&cmd=movedn">';
 		$s .= '</map>';
 	}
-	$s .= '</td>';
+	$s .= '</td>'."\n";
 
 	$s .= '<td width="1%" nowrap="nowrap">' . $AppUI->_($row['mod_name']) . '</td>';
 	$s .= '<td>';
@@ -144,7 +144,7 @@ foreach ($modules as $row) {
 
 	$s .= '<td>' . $row['mod_ui_order'] . '</td>';
 
-	echo "<tr>$s</tr>";
+	echo "<tr>$s</tr>\n";
 }
 
 foreach ($modFiles as $v) {
@@ -152,7 +152,7 @@ foreach ($modFiles as $v) {
 	if ($v && ! in_array($v, $hidden_modules)) {
 		$s = '';
 		$s .= '<td></td>';
-		$s .= '<td>' . $v . '</td>';
+		$s .= '<td>' . $AppUI->_($AppUI->_($v)) . '</td>';
 		$s .= '<td>';
 		$s .= '<img src="./images/obj/dotgrey.gif" width="12" height="12" />&nbsp;';
 		if ($canEdit) {
@@ -162,8 +162,8 @@ foreach ($modFiles as $v) {
 		if ($canEdit) {
 			$s .= '</a>';
 		}
-		$s .= '</td>';
-		echo "<tr>$s</tr>";
+		$s .= '</td>'."\n";
+		echo "<tr>$s</tr>\n";
 	}
 
 }

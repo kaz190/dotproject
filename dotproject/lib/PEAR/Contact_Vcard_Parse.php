@@ -16,7 +16,7 @@
 // | Authors: Paul M. Jones <pjones@ciaweb.net>                           | 
 // +----------------------------------------------------------------------+ 
 // 
-// $Id$ 
+// $Id: Contact_Vcard_Parse.php 1587 2003-09-17 19:05:51Z gregorerhardt $ 
 
 
 //dP dotproject | gregorerhardt 20030914:
@@ -56,7 +56,7 @@
 *
 * @author Paul M. Jones <pjones@ciaweb.net>
 * @package Contact_Vcard_Parse
-* @version $Revision$
+* @version $Revision: 1587 $
 * 
 */
 

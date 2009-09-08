@@ -1,4 +1,4 @@
-<?php /* $Id$ */
+<?php /* $Id: session.php 5559 2007-12-09 21:22:12Z ajdonnison $ */
 ##
 ## Session Handling Functions
 ##
@@ -25,34 +25,37 @@ require_once DP_BASE_DIR . '/classes/query.class.php';
 require_once DP_BASE_DIR . '/classes/ui.class.php';
 require_once DP_BASE_DIR . '/classes/event_queue.class.php';
 
-function dPsessionOpen($save_path, $session_name) {
+function dPsessionOpen($save_path, $session_name)
+{
 	return true;
 }
 
-function dPsessionClose() {
+function dPsessionClose()
+{
 	return true;
 }
 
-function dPsessionRead($id) {
-	$q = new DBQuery;
+function dPsessionRead($id)
+{
+	$q  = new DBQuery;
 	$q->addTable('sessions');
 	$q->addQuery('session_data');
 	$q->addQuery('UNIX_TIMESTAMP() - UNIX_TIMESTAMP(session_created) as session_lifespan');
 	$q->addQuery('UNIX_TIMESTAMP() - UNIX_TIMESTAMP(session_updated) as session_idle');
 	$q->addWhere("session_id = '$id'");
 	$qid =& $q->exec();
-	if (! $qid || $qid->EOF) {
+	if (! $qid || $qid->EOF ) {
 		dprint(__FILE__, __LINE__, 11, "Failed to retrieve session $id");
 		$data =  "";
 	} else {
 		$max = dPsessionConvertTime('max_lifetime');
 		$idle = dPsessionConvertTime('idle_time');
-		dprint(__FILE__, __LINE__, 11, 
-		       ("Found session $id, max=$max/" . $qid->fields['session_lifespan'] 
-		        . ", idle=$idle/" . $qid->fields['session_idle']));
+		dprint(__FILE__, __LINE__, 11, "Found session $id, max=$max/" . $qid->fields['session_lifespan']
+		. ", idle=$idle/" . $qid->fields['session_idle']);
 		// If the idle time or the max lifetime is exceeded, trash the
 		// session.
-		if ($max < $qid->fields['session_lifespan'] || $idle < $qid->fields['session_idle']) {
+		if ($max < $qid->fields['session_lifespan']
+		 || $idle < $qid->fields['session_idle']) {
 			dprint(__FILE__, __LINE__, 11, "session $id expired");
 			dPsessionDestroy($id);
 			$data = '';
@@ -64,15 +67,17 @@ function dPsessionRead($id) {
 	return $data;
 }
 
-function dPsessionWrite($id, $data) {
+function dPsessionWrite($id, $data)
+{
     global $AppUI;
     
 	$q = new DBQuery;
 	$q->addQuery('count(*) as row_count');
 	$q->addTable('sessions');
 	$q->addWhere("session_id = '$id'");
-	
-	if ($qid =& $q->exec() && (@$qid->fields['row_count'] > 0 || @$qid->fields[0] > 0)) {
+
+	if ( $qid =& $q->exec() 
+	&& ( @$qid->fields['row_count'] > 0 || @$qid->fields[0] > 0) ) {
 		dprint(__FILE__, __LINE__, 11, "Updating session $id");
 		$q->query = null;
 		$q->addUpdate('session_data', $data);
@@ -96,16 +101,14 @@ function dPsessionDestroy($id, $user_access_log_id=0) {
  	global $AppUI;
     
 	$q = new DBQuery;
-	
+
 	dprint(__FILE__, __LINE__, 11, "Killing session $id");
 	$q->addTable('user_access_log');
 	$q->addUpdate('date_time_out', date('Y-m-d H:i:s'));
-	$q->addWhere('user_access_log_id' 
-	             . (($user_access_log_id) ? (' = ' . $user_access_log_id)
-	                : " IN (SELECT session_user from sessions WHERE session_id = '$id')"));
+	$q->addWhere('user_access_log_id = ( SELECT session_user from sessions WHERE session_id = \'' . $id . '\' )');
 	$q->exec();
 	$q->clear();
-	
+
 	$q->setDelete('sessions');
 	$q->addWhere("session_id = '$id'");
 	$q->exec();
@@ -114,20 +117,20 @@ function dPsessionDestroy($id, $user_access_log_id=0) {
 	return true;
 }
 
-function dPsessionGC($maxlifetime) {
+function dPsessionGC($maxlifetime)
+{
 	global $AppUI;
-	
+
 	dprint(__FILE__, __LINE__, 11, 'Session Garbage collection running');
 	$now = time();
 	$max = dPsessionConvertTime('max_lifetime');
 	$idle = dPsessionConvertTime('idle_time');
 	// First pass is to kill any users that are logged in at the time of the session.
-	$where = ('UNIX_TIMESTAMP() - UNIX_TIMESTAMP(session_updated) > ' . $idle 
-	          . ' OR UNIX_TIMESTAMP() - UNIX_TIMESTAMP(session_created) > ' . $max);
+	$where = "UNIX_TIMESTAMP() - UNIX_TIMESTAMP(session_updated) > $idle OR UNIX_TIMESTAMP() - UNIX_TIMESTAMP(session_created) > $max";
 	$q = new DBQuery;
 	$q->addTable('user_access_log');
 	$q->addUpdate('date_time_out', date('Y-m-d H:i:s'));
-	$q->addWhere("user_access_log_id IN (SELECT session_user from sessions WHERE $where)");
+	$q->addWhere("user_access_log_id IN ( SELECT session_user from sessions WHERE $where )");
 	$q->exec();
 	$q->clear();
 	
@@ -149,15 +152,16 @@ function dPsessionGC($maxlifetime) {
 	return true;
 }
 
-function dPsessionConvertTime($key) {
+function dPsessionConvertTime($key)
+{
 	$key = 'session_' . $key;
-	
+
 	// If the value isn't set, then default to 1 day.
 	if (dPgetConfig($key) == null || dPgetConfig($key) == null)
 		return 86400;
-	
+
 	$numpart = (int) dPgetConfig($key);
-	$modifier = mb_substr(dPgetConfig($key), -1);
+	$modifier = substr(dPgetConfig($key), -1);
 	if (! is_numeric($modifier)) {
 		switch ($modifier) {
 			case 'h':
@@ -177,19 +181,26 @@ function dPsessionConvertTime($key) {
 	return $numpart;
 }
 
-function dpSessionStart($start_vars = 'AppUI') {
+function dpSessionStart($start_vars = 'AppUI')
+{
 	session_name('dotproject');
 	if (ini_get('session.auto_start') > 0) {
 		session_write_close();
 	}
-	if (dPgetConfig('session_handling') == 'app') {
+	if (dPgetConfig('session_handling') == 'app') 
+	{
 		ini_set('session.save_handler', 'user');
-		// PHP 5.2 workaround
-		if (version_compare(phpversion(), '5.0.0', '>=')) {
-			register_shutdown_function('session_write_close');
-		} 
-		session_set_save_handler('dPsessionOpen', 'dPsessionClose', 'dPsessionRead', 
-		                         'dPsessionWrite', 'dPsessionDestroy', 'dPsessionGC');
+	// PHP 5.2 workaround
+    if (version_compare(phpversion(), '5.0.0', '>=')) {
+        register_shutdown_function('session_write_close');
+    } 
+		session_set_save_handler(
+			'dPsessionOpen', 
+			'dPsessionClose', 
+			'dPsessionRead', 
+			'dPsessionWrite', 
+			'dPsessionDestroy', 
+			'dPsessionGC');
 		$max_time = dPsessionConvertTime('max_lifetime');
 	} else {
 		$max_time = 0; // Browser session only.
@@ -197,21 +208,23 @@ function dpSessionStart($start_vars = 'AppUI') {
 	// Try and get the correct path to the base URL.
 	preg_match('_^(https?://)([^/]+)(:0-9]+)?(/.*)?$_i', dPgetConfig('base_url'), $url_parts);
 	$cookie_dir = $url_parts[4];
-	if (mb_substr($cookie_dir, 0, 1) != '/') {
+	if (substr($cookie_dir, 0, 1) != '/')
 		$cookie_dir = '/' . $cookie_dir;
-	}
-	if (mb_substr($cookie_dir, -1) != '/') {
+	if (substr($cookie_dir, -1) != '/')
 		$cookie_dir .= '/';
-	}
 	session_set_cookie_params($max_time, $cookie_dir);
 	session_start();
 	if (is_array($start_vars)) {
 		foreach ($start_vars as $var) {
-			session_register($var);
+			//session_register($var);  @@@K.Sen
+			$_SESSION[$var];
 		}
-	} else if (!(empty($start_vars))) {
-		session_register($start_vars);
+	} else if (! empty($start_vars)) {
+		//session_register($start_vars);@@@K.Sen
+		$_SESSION[$start_vars];
 	}
 }
 
+// vi:ai sw=2 ts=2:
+// vim600:ai sw=2 ts=2 fdm=marker:
 ?>

@@ -1,5 +1,5 @@
-<?php /* PROJECTS $Id$ */
-if (!defined('DP_BASE_DIR')) {
+<?php /* PROJECTS $Id: view.php 5714 2008-05-21 00:47:24Z merlinyoda $ */
+if (!defined('DP_BASE_DIR')){
 	die('You should not access this file directly.');
 }
 
@@ -9,14 +9,12 @@ $project_id = intval(dPgetParam($_GET, 'project_id', 0));
 $q = new DBQuery;
 
 //check permissions for this record
-$canAccess = getPermission($m, 'access', $project_id);
-$canRead = getPermission($m, 'view', $project_id);
-$canEdit = getPermission($m, 'edit', $project_id);
+$perms =& $AppUI->acl();
+$canRead = $perms->checkModuleItem($m, 'view', $project_id);
+$canEdit = $perms->checkModuleItem($m, 'edit', $project_id);
+$canAddTask = $perms->checkModule('tasks', 'add');
 
-$canAuthorTask = getPermission('tasks', 'add');
-
-//Check if the proect is viewable.
-if (!($canRead)) {
+if (!$canRead) {
 	$AppUI->redirect('m=public&a=access_denied');
 }
 
@@ -29,6 +27,12 @@ $tab = $AppUI->getState('ProjVwTab') !== NULL ? $AppUI->getState('ProjVwTab') : 
 //check if this record has dependencies to prevent deletion
 $msg = '';
 $obj = new CProject();
+//Now check if the proect is editable/viewable.
+$denied = $obj->getDeniedRecords($AppUI->user_id);
+if (in_array($project_id, $denied)) {
+	$AppUI->redirect('m=public&a=access_denied');
+}
+
 $canDelete = $obj->canDelete($msg, $project_id);
 
 //get critical tasks (criteria: task_end_date)
@@ -90,7 +94,7 @@ if (!db_loadObject($sql, $obj)) {
 //now milestones are summed up, too, for consistence with the tasks duration sum
 //the sums have to be rounded to prevent the sum form having many (unwanted) decimals because of the mysql floating point issue
 //more info on http://www.mysql.com/doc/en/Problems_with_float.html
-if ($hasTasks) {
+if($hasTasks) {
     $q->addTable('task_log');
     $q->addTable('tasks');
     $q->addQuery('ROUND(SUM(task_log_hours),2)');
@@ -173,7 +177,7 @@ $titleBlock->addCell(('<input type="text" class="text" SIZE="10" name="searchtex
 					 ('<form action="?m=projects&a=view&project_id=' . $project_id 
                       . '" method="post" id="searchfilter">'), '</form>');
 
-if ($canAuthorTask) {
+if ($canAddTask) {
 	$titleBlock->addCell();
 	$titleBlock->addCell(('<input type="submit" class="button" value="' . $AppUI->_('new task') 
 	                      . '">'), '', ('<form action="?m=tasks&a=addedit&task_project=' 
@@ -242,19 +246,19 @@ echo ('<span style="color:' . bestColor($obj->project_color_identifier) . '; fon
 		<tr>
 			<td align="right" nowrap><?php echo $AppUI->_('Company'); ?>:</td>
             <td class="hilite" width="100%"><?php 
-echo (((getPermission('companies', 'view', $obj->project_company)) 
+echo ((($perms->checkModuleItem('companies', 'access', $obj->project_company)) 
        ? ('<a href="?m=companies&a=view&company_id=' . $obj->project_company . '">') : '') 
       . htmlspecialchars($obj->company_name, ENT_QUOTES) 
-	  . ((getPermission('companies', 'view', $obj->project_company)) ? '</a>' : '')); 
+	  . (($perms->checkModuleItem('companies', 'access', $obj->project_company)) ? '</a>' : '')); 
 ?></td>
 		</tr>
 		<tr>
 			<td align="right" nowrap><?php echo $AppUI->_('Internal Company'); ?>:</td>
             <td class="hilite" width="100%"><?php 
-echo (((getPermission('companies', 'view', $obj->project_company_internal)) 
+echo ((($perms->checkModuleItem('companies', 'access', $obj->project_company_internal)) 
        ? ('<a href="?m=companies&a=view&company_id=' . $obj->project_company_internal . '">') : '') 
-      . htmlspecialchars($obj->company_name_internal, ENT_QUOTES) 
-	  . ((getPermission('companies', 'view', $obj->project_company_internal)) 
+      . htmlspecialchars($obj->company_name, ENT_QUOTES) 
+	  . (($perms->checkModuleItem('companies', 'access', $obj->project_company_internal)) 
          ? '</a>' : '')); 
 ?></td>
 		</tr>
@@ -379,9 +383,9 @@ if (count($depts) > 0) {
 		<tr>
 			<td colspan='3' class="hilite">
 				<?php
-	foreach ($depts as $dept_id => $dept_info) {
+	foreach($depts as $dept_id => $dept_info){
 		echo ('<div>' . $dept_info['dept_name']);
-		if ($dept_info['dept_phone'] != '') {
+		if($dept_info['dept_phone'] != ''){
 			echo ('(' . $dept_info['dept_phone'] . ')');
 		}
 		echo '</div>';
@@ -417,7 +421,7 @@ if (count($contacts) > 0) {
 				</tr>
 <?php
 	foreach ($contacts as $contact_id => $contact_data) {
-		$canEdit = getPermission('contacts', 'edit', $contact_id);
+		$canEdit = $perms->checkModuleItem('contacts', 'edit', $contact_id);
 ?>
 				<tr>
 					<td class='hilite'><?php 
@@ -454,24 +458,24 @@ $tabBox = new CTabBox(('?m=projects&a=view&project_id=' . $project_id), '', $tab
 $query_string = ('?m=projects&a=view&project_id=' . $project_id);
 //tabbed information boxes
 //Note that we now control these based upon module requirements.
-$canAccessTask = getPermission('tasks', 'access');
-$canAccessTaskLog = getPermission('task_log', 'access');
+$canViewTask = $perms->checkModule('tasks', 'view');
+$canViewTaskLog = $perms->checkModule('task_log', 'view');
 
-if ($canAccessTask) {
+if ($canViewTask) {
 	$tabBox->add(DP_BASE_DIR.'/modules/tasks/tasks', 'Tasks');
 	$tabBox->add(DP_BASE_DIR.'/modules/tasks/tasks', 'Tasks (Inactive)');
 }
-if (getPermission('forums', 'access')) {
+if ($perms->checkModule('forums', 'view')) {
 	$tabBox->add(DP_BASE_DIR.'/modules/projects/vw_forums', 'Forums');
 }
 /*
-if (getPermission('files', 'access')) {
+if ($perms->checkModule('files', 'view')) {
 	$tabBox->add(DP_BASE_DIR.'/modules/projects/vw_files', 'Files');
 }
 */
-if ($canAccessTask) {
+if ($canViewTask) {
 	$tabBox->add(DP_BASE_DIR.'/modules/tasks/viewgantt', 'Gantt Chart');
-	if ($canAccessTaskLog) {
+	if ($canViewTaskLog) {
 		$tabBox->add(DP_BASE_DIR.'/modules/projects/vw_logs', 'Task Logs');
 	}
 }

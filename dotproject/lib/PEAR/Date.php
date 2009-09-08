@@ -22,7 +22,7 @@
 // Date Class
 //
 
-// dotProject CVS $Id$
+// dotProject CVS $Id: Date.php 2671 2005-02-03 00:50:17Z ajdonnison $
 // The following lines are modified to correctly load the libraries
 // from the dotProject distribution
 require_once( $AppUI->getLibraryClass( 'PEAR/Date/TimeZone' ) );
@@ -142,7 +142,7 @@ class Date
     {
         switch($format) {
             case DATE_FORMAT_ISO:
-                if (ereg("([0-9]{4})-([0-9]{2})-([0-9]{2})[ ]([0-9]{2}):([0-9]{2}):([0-9]{2})",$date,$regs)) {
+                if (preg_match("/([0-9]{4})-([0-9]{2})-([0-9]{2})[ ]([0-9]{2}):([0-9]{2}):([0-9]{2})/",$date,$regs)) {
                     $this->year   = $regs[1];
                     $this->month  = $regs[2];
                     $this->day    = $regs[3];
@@ -159,7 +159,7 @@ class Date
                 }
                 break;
             case DATE_FORMAT_TIMESTAMP:
-                if (ereg("([0-9]{4})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})",$date,$regs)) {
+                if (preg_match("/([0-9]{4})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})/",$date,$regs)) {
                     $this->year   = $regs[1];
                     $this->month  = $regs[2];
                     $this->day    = $regs[3];

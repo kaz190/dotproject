@@ -1,5 +1,5 @@
-<?php /* TASKS $Id$ */
-if (!defined('DP_BASE_DIR')) {
+<?php /* TASKS $Id: viewgantt.php 5714 2008-05-21 00:47:24Z merlinyoda $ */
+if (!defined('DP_BASE_DIR')){
   die('You should not access this file directly.');
 }
 
@@ -209,7 +209,7 @@ echo $AppUI->_('next');?>" border="0">
 <?php } ?>
 	</td>
 </tr>
-<?php if ($a == 'todo') { ?>
+<?php if($a == 'todo') { ?>
 <input type="hidden" name="show_form" value="1" />
 <tr>
 	<td align="center" valign="bottom" nowrap="nowrap" colspan="7">
@@ -276,9 +276,10 @@ if ($cnt[0]['N'] > 0) {
 	$src = ('?m=tasks&a=gantt&suppressHeaders=1&project_id=' . $project_id 
 	        . (($display_option == 'all') ? '' 
 	           : ('&start_date=' . $start_date->format('%Y-%m-%d') 
-	              . '&end_date=' . $end_date->format('%Y-%m-%d'))) . "&width='" 
-			. "+((navigator.appName=='Netscape'?window.innerWidth:document.body.offsetWidth)*0.95)" 
-			. "+'&showLabels=" . $showLabels . '&showWork=' . $showWork 
+	              . '&end_date=' . $end_date->format('%Y-%m-%d'))) 
+	        . "&width=' + ((navigator.appName=='Netscape'" 
+	        . "?window.innerWidth:document.body.offsetWidth)*0.95) + '" 
+	        . '&showLabels=' . $showLabels . '&showWork=' . $showWork 
 	        . '&sortByName=' . $sortByName . '&showPinned=' . $showPinned 
 	        . '&showArcProjs=' . $showArcProjs . '&showHoldProjs=' . $showHoldProjs 
 	        . '&showDynTasks=' . $showDynTasks . '&showLowTasks=' . $showLowTasks 

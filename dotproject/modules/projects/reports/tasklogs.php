@@ -1,12 +1,13 @@
-<?php /* PROJECTS $Id$ */
-if (!defined('DP_BASE_DIR')) {
+<?php /* PROJECTS $Id: tasklogs.php 5784 2008-07-26 03:56:57Z ajdonnison $ */
+if (!defined('DP_BASE_DIR')){
   die('You should not access this file directly.');
 }
 
 /**
 * Generates a report of the task logs for given dates
 */
-if (!(getPermission('task_log', 'view'))) {
+$perms =& $AppUI->acl();
+if (! $perms->checkModule('tasks', 'view')) {
 	redirect('m=public&a=access_denied');
 }	
 $do_report = dPgetParam($_GET, "do_report", 0);
@@ -31,7 +32,7 @@ $end_date->setTime(23, 59, 59);
 <script language="javascript">
 var calendarField = '';
 
-function popCalendar(field) {
+function popCalendar(field){
 	calendarField = field;
 	idate = eval('document.editFrm.log_' + field + '.value');
 	window.open('index.php?m=public&a=calendar&dialog=1&callback=setCalendar&date=' + idate, 'calwin', 'width=250, height=220, scrollbars=no, status=no');
@@ -131,7 +132,7 @@ function setCalendar(idate, fdate) {
 if ($do_report) {
 
 	$sql = "SELECT p.project_id, p.project_name, t.*, CONCAT_WS(' ',contact_first_name,contact_last_name) AS creator, " 
-		."\n if (bc.billingcode_name is null, '', bc.billingcode_name) as billingcode_name"
+		."\n if(bc.billingcode_name is null, '', bc.billingcode_name) as billingcode_name"
 		."\nFROM task_log AS t"
 		."\nLEFT JOIN billingcode bc ON bc.billingcode_id = t.task_log_costcode "
 		."\nLEFT JOIN users AS u ON user_id = task_log_creator"
@@ -152,13 +153,13 @@ if ($do_report) {
 		$sql .= "\n	AND task_log_creator = $log_userfilter";
 	}
 
-	$proj =& new CProject;
+	$proj = new CProject;
 	$allowedProjects = $proj->getAllowedSQL($AppUI->user_id, 'task_project');
 	if (count($allowedProjects)) {
 		$sql .= "\n     AND " . implode(" AND ", $allowedProjects);
 	}
 
-	$obj =& new CTask;
+	$obj = new CTask;
 	$allowedTasks = $obj->getAllowedSQL($AppUI->user_id, 'tasks.task_id');
 	if (count($allowedTasks)) {
 		$sql .= ' AND ' . implode(' AND ', $allowedTasks);
@@ -196,12 +197,12 @@ if ($do_report) {
 		$hours += $log['task_log_hours'];
 
 		$pdfdata[] = array(
-			safe_utf8_decode($log['creator']),
-			safe_utf8_decode($log['task_log_name']),
-			safe_utf8_decode($log['task_log_description']),
+			$log['creator'],
+			$log['task_log_name'],
+			$log['task_log_description'],
 			$date->format($df),
 			sprintf("%.2f", $log['task_log_hours']),
-			safe_utf8_decode($log['billingcode_name']),
+			$log['billingcode_name'],
 		);
 ?>
 	<tr>
@@ -215,13 +216,13 @@ if ($do_report) {
 		<td><?php
       $transbrk = "\n[translation]\n";
 			$descrip = str_replace("\n", "<br />", $log['task_log_description']);
-			$tranpos = mb_strpos($descrip, str_replace("\n", "<br />", $transbrk));
+			$tranpos = strpos($descrip, str_replace("\n", "<br />", $transbrk));
 			if ($tranpos === false) {
 				echo $descrip;
 			} else {
-				$descrip = mb_substr($descrip, 0, $tranpos);
-				$tranpos = mb_strpos($log['task_log_description'], $transbrk);
-				$transla = mb_substr($log['task_log_description'], $tranpos + mb_strlen($transbrk));
+				$descrip = substr($descrip, 0, $tranpos);
+				$tranpos = strpos($log['task_log_description'], $transbrk);
+				$transla = substr($log['task_log_description'], $tranpos + strlen($transbrk));
 				$transla = trim(str_replace("'", '"', $transla));
 				echo $descrip."<div style='font-weight: bold; text-align: right'><a title='$transla' class='hilite'>[".$AppUI->_("translation")."]</a></div>";
 			}
@@ -237,7 +238,7 @@ if ($do_report) {
 		'',
 		'',
 		'',
-		safe_utf8_decode($AppUI->_('Total Hours')).':',
+		$AppUI->_('Total Hours').':',
 		sprintf("%.2f", $hours),
 		'',
 	);
@@ -257,54 +258,23 @@ if ($do_report) {
 			$sql = "SELECT project_name FROM projects WHERE project_id=$project_id";
 			$pname = db_loadResult($sql);
 		} else {
-			$pname = "All Projects";
+			$pname = $AppUI->_('All Projects');
 		}
 		echo db_error();
 
-		$font_dir = DP_BASE_DIR.'/lib/ezpdf/fonts';
 		$temp_dir = DP_BASE_DIR.'/files/temp';
 		
-		require($AppUI->getLibraryClass('ezpdf/class.ezpdf'));
-
-		$pdf =& new Cezpdf();
-		$pdf->ezSetCmMargins(1, 2, 1.5, 1.5);
-		$pdf->selectFont("$font_dir/Helvetica.afm");
-
-		$pdf->ezText(safe_utf8_decode(dPgetConfig('company_name')), 12);
-
-		$date = new CDate();
-		$pdf->ezText("\n" . $date->format($df) , 8);
-
-		$pdf->selectFont("$font_dir/Helvetica-Bold.afm");
-		$pdf->ezText("\n" . safe_utf8_decode($AppUI->_('Task Log Report')), 12);
-		$pdf->ezText(safe_utf8_decode($pname), 15);
-		if ($log_all) {
-			$pdf->ezText("All task log entries", 9);
-		} else {
-			$pdf->ezText("Task log entries from ".$start_date->format($df).' to '.$end_date->format($df), 9);
-		}
-		$pdf->ezText("\n\n");
-
 		$title = 'Task Logs';
 
 	        $pdfheaders = array(
-		        safe_utf8_decode($AppUI->_('Created by')),
-        		safe_utf8_decode($AppUI->_('Summary')),
-        		safe_utf8_decode($AppUI->_('Description')),
-        		safe_utf8_decode($AppUI->_('Date')),
-        		safe_utf8_decode($AppUI->_('Hours')),
-	        	safe_utf8_decode($AppUI->_('Cost Code'))
+		        $AppUI->_('Created by'),
+        		$AppUI->_('Summary'),
+        		$AppUI->_('Description'),
+        		$AppUI->_('Date'),
+        		$AppUI->_('Hours'),
+	        	$AppUI->_('Cost Code')
         	);
 
-        	$options = array(
-			'showLines' => 0,
-			'fontSize' => 12,
-			'rowGap' => 2,
-			'colGap' => 5,
-			'xPos' => 50,
-			'xOrientation' => 'right',
-			'width' => 500,
-			);
 	        $pdfheaderdata[] = array (
 	                                  '',
 	                                  '',
@@ -312,33 +282,193 @@ if ($do_report) {
 	                                  '',
 	                                  '',
 	                                  '',
-	                                );
-		$pdf->ezTable($pdfheaderdata,$pdfheaders,$title,$options);
-			 
-	        $options['col_options'] = array(
-			                        2 => array('width' => 250),
-			                        3 => array('width' => 55),
-			                        4 => array('width' => 30),
-			                        5 => array('width' => 30),
-			                      );
-	        $options['showHeadings'] = 0;
-	        $options['showLines'] = 1;
-	        $options['fontSize'] = 8;
-	        
-		$pdf->ezTable($pdfdata,'','',$options);
+	                                 );
+       
+// ---------------------------------------------------------
+//Tcpdf Report Output [Itsutsubashi-K.Sen-200808-17] 
 
-		if ($fp = fopen($temp_dir.'/temp'.$AppUI->user_id.'.pdf', 'wb')) {
-			fwrite($fp, $pdf->ezOutput());
-			fclose($fp);
-			echo '<a href="'.DP_BASE_URL.'/files/temp/temp'.$AppUI->user_id.'.pdf" target="pdf">';
-			echo $AppUI->_("View PDF File");
-			echo "</a>";
-		} else {
-			echo "Could not open file to save PDF.  ";
-			if (!is_writable($temp_dir)) {
-				"The files/temp directory is not writable.  Check your file system permissions.";
+//Itsutsubashi-K.Sen-20090814 
+require_once(DP_BASE_DIR .'/lib/tcpdf/config/lang/jpn.php');
+require_once(DP_BASE_DIR .'/lib/tcpdf/tcpdf.php');	
+
+//Define Placement Parameters
+$header_w = 30;
+$header_h = 4;
+$header_line_gap = 5;
+$str_pad = 5;
+
+$l_gap = 0;
+$cell_height = 7;
+$width = 20; 
+$x_start = PDF_MARGIN_LEFT;
+$y_start = 10;
+$line_gap = 5;
+$x_max = 200;
+$y_max = 160; 
+$x =  $x_start ;
+$y =  $y_start ;
+
+// create new PDF document
+$pdf = new TCPDF("L", PDF_UNIT, PDF_PAGE_FORMAT, true); 
+
+// set document information
+$pdf->SetCreator(PDF_CREATOR);
+//$pdf->SetAuthor();
+$pdf->SetTitle($AppUI->_('Task Log Report'));
+$pdf->SetSubject($AppUI->_('Report as PDF'));
+$pdf->SetKeywords("TCPDF, PDF");
+
+// remove default header/footer
+$pdf->setPrintHeader(false);
+$pdf->setPrintFooter(false);
+
+//set margins
+$pdf->SetMargins(PDF_MARGIN_LEFT, 10, PDF_MARGIN_RIGHT);
+
+//set auto page breaks
+$pdf->SetAutoPageBreak(TRUE, PDF_MARGIN_BOTTOM);
+
+//set image scale factor
+$pdf->setImageScale(PDF_IMAGE_SCALE_RATIO); 
+
+//set some language-dependent strings
+$pdf->setLanguageArray($l); 
+
+//initialize document
+$pdf->AliasNbPages();
+
+// add a page
+$pdf->AddPage();
+
+// ---------------------------------------------------------
+// set font
+$pdf->SetFont("arialunicid0", "B", 12); //B= bold , I = Italic , U = Underlined
+
+//Document Header
+//Line1
+$slen = strlen(dPgetConfig( 'company_name' )."\n") + $str_pad;
+$pdf->writeHTMLCell($header_w + $slen, $header_h, $x, $y,dPgetConfig( 'company_name' ));
+$pdf->writeHTMLCell($header_w, $header_h,  $x + $slen, $y,date("Y/m/d"));
+
+// (Width,Height,Text,Border,Align,Fill,Line,x,y,reset,stretch,ishtml,autopadding,maxh)
+
+// Line break - Line2
+$y = $y + $header_line_gap;
+
+// set font
+$pdf->SetFont("", "B", 12);
+
+// Title 
+$slen = mb_strlen($AppUI->_('Task Log Report')) + $str_pad;
+$pdf->writeHTMLCell($header_w + $slen, $header_h, $x, $y,$AppUI->_('Task Log Report'));
+
+
+// Line break - Line3 
+$y = $y + $header_line_gap;
+
+$slen = strlen($pname."\n") + $str_pad;
+$pdf->writeHTMLCell($header_w + $slen, $header_h, $x, $y,$pname);
+
+// Line break - Line4
+$y = $y + $header_line_gap;
+
+if ($log_all) {
+    $slen = strlen($AppUI->_('All task log entries')) + $str_pad;
+    $pdf->writeHTMLCell($header_w + $slen, $header_h, $x + 100, $y,$AppUI->_('All task log entries'));
+
+} else {
+    $slen = mb_strlen($AppUI->_('Task log entries from')."  ".$start_date->format($df).' ~ '.$end_date->format($df)) + $str_pad+10;
+    $pdf->writeHTMLCell($header_w + $slen, $header_h, $x + 100, $y,$AppUI->_('Task log entries from')
+                                                             ."  "
+                                                             .$start_date->format($df)
+                                                             .' ~ '
+                                                             .$end_date->format($df));
+  }
+
+
+// Line break - Line5
+$y = $y + $header_line_gap;
+$y = $y + $header_line_gap;
+$y = $y + $header_line_gap;
+
+// Color and font restoration 
+$pdf->SetFillColor(224, 235, 255); 
+$pdf->SetTextColor(0); 
+
+// Column Header 
+$pdf->SetFont("", "B", 10); //B= bold , I = Italic , U = Underlined
+$w = array(50, 40, 100, 30,30,30); 
+$x_init=$x;
+
+for($i = 0; $i < count($pdfheaders); $i++){ 
+    $pdf->writeHTMLCell($w[$i], $header_h, $x_init, $y,$pdfheaders[$i]."\n",0,0,1);
+    $x_init = $x_init + $w[$i];
+
+}
+ 
+// Line break - Line6
+$row_height = round($pdf->getLastH());
+$y = $y + $row_height;
+
+// Color and font restoration 
+$pdf->SetFont("", "", 10); //B= bold , I = Italic , U = Underlined
+$pdf->SetFillColor(224, 235, 255); 
+$pdf->SetTextColor(0); 
+
+
+// Data 
+$fill = 0; 
+$x_init = $x;$pdf->SetXY($x_init,$y);
+$max_rows = 1; 
+
+foreach($pdfdata as $rows) {
+    $lc = array();
+    for($i = 0; $i < count($rows); $i++)
+        $lc[] = $pdf->getNumLines($rows[$i],$w[$i]);
+ 
+    //Max no of Lines the row occupies
+    $linecount = max($lc);
+
+	for($i = 0; $i < count($rows); $i++){    
+		$pdf->MultiCell($w[$i], ($header_h * $linecount)+ $header_h, trim($rows[$i])."\n", 0, 'J', 0, 0, $x_init, $y, true);
+    	//$pdf->writeHTMLCell($w[$i], $row_height, $x_init, $y,$rows[$i]."\n",0,0,0);
+    	$x_init = $x_init + $w[$i];$pdf->SetX($x_init);
+		
+	} 
+       
+	// Line break - Line X
+	$y = $y + ($header_h * $linecount)+ $header_h ; 
+    
+    if ($y > $y_max){
+        $pdf->AddPage();
+	    $y =  $y_start ;
+    }
+
+    $x_init = $x;$pdf->SetXY($x_init,$y);
+    $fill=!$fill;  
+} 
+
+
+// ---------------------------------------------------------
+
+//Close and output PDF document
+$pdf->Output("$temp_dir/temp$AppUI->user_id.pdf", "F");//I for testing, D for Download, F Save to a File
+$temp_dir = dPgetConfig( 'root_dir' )."/files/temp";
+$base_url  = dPgetConfig( 'base_url' );
+
+// Create document body and pdf temp file
+
+	if ($fp = fopen( "$temp_dir/temp$AppUI->user_id.pdf", 'r' )) {
+		fclose( $fp );
+		echo "<a href=\"$base_url/files/temp/temp$AppUI->user_id.pdf\" target=\"pdf\">";
+		echo $AppUI->_( "View PDF File" );
+		echo "</a>";
+	} else {
+		echo "Could not open file to save PDF.  ";
+		if (!is_writable( $temp_dir ))
+			echo "The files/temp directory is not writable.  Check your file system permissions.";
 			}
-		}
+
 	}
 }
 ?>

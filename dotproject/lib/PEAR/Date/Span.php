@@ -19,7 +19,7 @@
 // PEAR CVS Id: Span.php,v 1.4 2003/04/30 03:56:26 llucax Exp 
 //
 
-// dotProject CVS $Id$
+// dotProject CVS $Id: Span.php 1368 2003-05-28 22:38:11Z eddieajau $
 // The following lines are modified to correctly load the libraries
 // from the dotProject distribution
 require_once( $AppUI->getLibraryClass( 'PEAR/Date' ) );
@@ -66,7 +66,7 @@ $_DATE_SPAN_INPUT_FORMAT = DATE_SPAN_INPUT_FORMAT_NNSV;
 *
 * @package Date
 * @author  Leandro Lucarella <llucax@php.net>
-* @version $Revision$
+* @version $Revision: 1368 $
 * @since   1.4
 * @todo    Get and set default local input and output formats?
 * @access  public

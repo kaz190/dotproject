@@ -4,7 +4,7 @@
 // Description:	PHP Graph Plotting library. Base module.
 // Created: 	2001-01-08
 // Author:	Johan Persson (johanp@aditus.nu)
-// Ver:		$Id$
+// Ver:		$Id: jpgraph.php 5142 2007-07-04 15:07:49Z caseydk $
 //
 // Copyright (c) Aditus Consulting. All rights reserved.
 //========================================================================
@@ -3109,7 +3109,8 @@ class TTF {
  	    FF_GOTHIC  => array(FS_NORMAL=>GOTHIC_TTF_FONT,  FS_BOLD=>'',   FS_ITALIC=>'',   FS_BOLDITALIC=>'' ),    
  	    FF_PGOTHIC => array(FS_NORMAL=>PGOTHIC_TTF_FONT,  FS_BOLD=>'',   FS_ITALIC=>'',   FS_BOLDITALIC=>'' ),    
  	    FF_MINCHO =>  array(FS_NORMAL=>PMINCHO_TTF_FONT,  FS_BOLD=>'',   FS_ITALIC=>'',   FS_BOLDITALIC=>'' ),
-      FF_CUSTOM =>  array(FS_NORMAL=>CUSTOM_TTF_FONT, FS_BOLD=>CUSTOM_TTF_FONT_BOLD, FS_ITALIC=>CUSTOM_TTF_FONT_ITALIC, FS_BOLDITALIC=>CUSTOM_TTF_FONT_BOLDITALIC)
+//      FF_CUSTOM =>  array(FS_NORMAL=>CUSTOM_TTF_FONT, FS_BOLD=>CUSTOM_TTF_FONT_BOLD, FS_ITALIC=>CUSTOM_TTF_FONT_ITALIC, FS_BOLDITALIC=>CUSTOM_TTF_FONT_BOLDITALIC)
+      FF_CUSTOM =>  array(FS_NORMAL=>PGOTHIC_TTF_FONT, FS_BOLD=>PGOTHIC_TTF_FONT, FS_ITALIC=>PGOTHIC_TTF_FONT, FS_BOLDITALIC=>PGOTHIC_TTF_FONT)
 );
     }
 

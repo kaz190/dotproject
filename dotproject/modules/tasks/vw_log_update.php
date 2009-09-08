@@ -1,17 +1,19 @@
-<?php /* TASKS $Id$ */
-if (!defined('DP_BASE_DIR')) {
+<?php /* TASKS $Id: vw_log_update.php 5715 2008-05-27 13:03:24Z merlinyoda $ */
+if (!defined('DP_BASE_DIR')){
   die('You should not access this file directly.');
 }
 
 global $AppUI, $task_id, $obj, $percent, $can_edit_time_information;
 
+$perms =& $AppUI->acl();
+
 // check permissions
-if (!getPermission('tasks', 'edit', $task_id)) {
+if (!$perms->checkModuleItem('tasks', 'edit', $task_id)) {
 	$AppUI->redirect('m=public&a=access_denied');
 }
 
-$canEdit = getPermission('task_log', 'edit', $task_id);
-$canAdd = getPermission('task_log', 'add', $task_id);
+$canEdit = $perms->checkModuleItem('task_log', 'edit', $task_id);
+$canAdd = $perms->checkModuleItem('task_log', 'add', $task_id);
 
 $task_log_id = intval(dPgetParam($_GET, 'task_log_id', 0));
 $log = new CTaskLog();
@@ -35,14 +37,14 @@ if (!($task->canAccess($AppUI->user_id))) {
 	$AppUI->redirect('m=public&a=access_denied');
 }
 
+$proj = new CProject();
+$proj->load($obj->task_project);
+
 $q = new DBQuery;
-$q->addTable('tasks', 't');
-$q->innerJoin('projects', 'p', 'p.project_id = t.task_project');
-$q->innerJoin('billingcode', 'b', 'b.company_id = p.project_company OR b.company_id = 0');
-$q->addQuery('b.billingcode_id, b.billingcode_name');
-$q->addWhere('b.billingcode_status = 0');
-$q->addWhere('t.task_id = ' . $task_id);
-$q->addOrder('b.billingcode_name');
+$q->addTable('billingcode', 'b');
+$q->addQuery('billingcode_id, billingcode_name');
+$q->addWhere('billingcode_status = 0');
+$q->addOrder('billingcode_name');
 $task_log_costcodes = $q->loadHashList();
 $task_log_costcodes[0] = '';
 $q->clear();
@@ -124,7 +126,7 @@ echo $AppUI->_('minutes elapsed'); ?>)";
 	}
 	
 	function timerStart() {
-		if (!timerID) { // this means that it needs to be started
+		if (!timerID){ // this means that it needs to be started
 			timerSet();
 			document.editFrm.timerStartStopButton.value = "<?php echo $AppUI->_('Stop'); ?>";
 			UpdateTimer();
@@ -154,7 +156,7 @@ echo $AppUI->_('minutes elapsed'); ?>)";
 	<?php
 if ($obj->canUserEditTimeInformation()) {
 ?>
-	function popCalendar(field) {
+	function popCalendar(field){
 		calendarField = field;
 		idate = eval('document.editFrm.task_' + field + '.value');
 		window.open('index.php?m=public&a=calendar&dialog=1&callback=setCalendar&date=' + idate, 'calwin', 'width=251, height=220, scrollbars=no, status=no');
@@ -326,7 +328,7 @@ echo (($tp) ? ' checked="checked"' : ''); ?> />
           <label for="email_project_contacts"><?php echo $AppUI->_('Project Contacts'); ?></label>
           <input type='hidden' name='email_others' id='email_others' value=''>
           <?php
-if ($AppUI->isActiveModule('contacts') && getPermission('contacts', 'view')) {
+if ($AppUI->isActiveModule('contacts') && $perms->checkModule('contacts', 'view')) {
 ?>
           <input type='button' class='button' value='<?php 
 	echo $AppUI->_('Other Contacts...'); ?>' onclick='javascript:popEmailContacts();' />

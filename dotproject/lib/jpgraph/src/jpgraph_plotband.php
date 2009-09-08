@@ -4,7 +4,7 @@
 // Description:	PHP4 Graph Plotting library. Extension module.
 // Created: 	2004-02-18
 // Author:	Johan Persson (johanp@aditus.nu)
-// Ver:		$Id$
+// Ver:		$Id: jpgraph_plotband.php 3904 2006-02-28 19:46:57Z gregorerhardt $
 //
 // Copyright (c) Aditus Consulting. All rights reserved.
 //========================================================================

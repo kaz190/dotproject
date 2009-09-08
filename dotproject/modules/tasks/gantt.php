@@ -1,11 +1,11 @@
-<?php /* TASKS $Id$ */
-if (!defined('DP_BASE_DIR')) {
+<?php /* TASKS $Id: gantt.php 5781 2008-07-24 10:49:36Z ajdonnison $ */
+if (!defined('DP_BASE_DIR')){
 	die('You should not access this file directly.');
 }
 
 /*
  * Gantt.php - by J. Christopher Pereira
- * TASKS $Id$
+ * TASKS $Id: gantt.php 5781 2008-07-24 10:49:36Z ajdonnison $
  */
 global $caller, $locale_char_set;
 global $user_id, $dPconfig;
@@ -13,11 +13,11 @@ global $user_id, $dPconfig;
 $showLabels = dPgetParam($_GET, 'showLabels', 0);
 $showWork = dPgetParam($_GET, 'showWork', 0);
 $sortByName = dPgetParam($_GET, 'sortByName', 0);
-$showPinned = dPgetParam($_REQUEST, 'showPinned', false);
-$showArcProjs = dPgetParam($_REQUEST, 'showArcProjs', false);
-$showHoldProjs = dPgetParam($_REQUEST, 'showHoldProjs', false);
-$showDynTasks = dPgetParam($_REQUEST, 'showDynTasks', false);
-$showLowTasks = dPgetParam($_REQUEST, 'showLowTasks', true);
+$showPinned = dPgetParam( $_REQUEST, 'showPinned', false );
+$showArcProjs = dPgetParam( $_REQUEST, 'showArcProjs', false );
+$showHoldProjs = dPgetParam( $_REQUEST, 'showHoldProjs', false );
+$showDynTasks = dPgetParam( $_REQUEST, 'showDynTasks', false );
+$showLowTasks = dPgetParam( $_REQUEST, 'showLowTasks', true);
 
 ini_set('memory_limit', $dPconfig['reset_memory_limit']);
 
@@ -31,7 +31,7 @@ $f = dPgetParam($_REQUEST, 'f', 0);
 $df = $AppUI->getPref('SHDATEFORMAT');
 
 require_once $AppUI->getModuleClass('projects');
-$project =& new CProject;
+$project = new CProject;
 if ($project_id > 0) {
 	$criticalTasks = $project->getCriticalTasks($project_id);
 	$project->load($project_id);
@@ -57,10 +57,9 @@ $caller = defVal(@$_REQUEST['caller'], null);
  * so we have to tweak a little bit, also we do not have a special project available
  */
 if ($caller == 'todo') {
- 	$user_id = defVal(@$_REQUEST['user_id'], $AppUI->user_id);
+ 	$user_id = defVal( @$_REQUEST['user_id'], 0 );
  
- 	$projects[$project_id]['project_name'] = ($AppUI->_('Todo for') . ' ' 
-	                                          . dPgetUsernameFromID($user_id));
+ 	$projects[$project_id]['project_name'] = $AppUI->_('Todo for').' '.dPgetUsername($user_id);
  	$projects[$project_id]['project_color_identifier'] = 'ff6000';
 	
 
@@ -129,9 +128,9 @@ if ($caller == 'todo') {
 	$q->addOrder('p.project_id, ' . (($sortByName) ? 't.task_name, ' : '') . 't.task_start_date');
 }
 // get any specifically denied tasks
-$task =& new CTask;
+$task = new CTask;
 $task->setAllowedSQL($AppUI->user_id, $q);
-$proTasks_data = $q->loadHashList('task_id');
+$proTasks = $q->loadHashList('task_id');
 $q->clear();
 
 $orrarr[] = array('task_id'=>0, 'order_up'=>0, 'order'=>'');
@@ -144,15 +143,6 @@ $actual_end_date = new CDate($criticalTasks[0]['task_end_date']);
 $p_end_date = (($actual_end_date->after($project->project_end_date)) 
                ? $criticalTasks[0]['task_end_date'] : $project->project_end_date);
 
-//filter out tasks denied based on task's access level
-$proTasks = array();
-foreach ($proTasks_data as $data_row) {
-	$task->peek($data_row['task_id']);
-	if ($task->canAccess($AppUI->user_id)) {
-	  $proTasks[] = $data_row;
-	}
-}
-
 foreach ($proTasks as $row) {
 	// calculate or set blank task_end_date if unset
 	if ($row['task_end_date'] == '0000-00-00 00:00:00') {
@@ -160,7 +150,7 @@ foreach ($proTasks as $row) {
 			$start_date_unix_time = (db_dateTime2unix($row['task_start_date']) + SECONDS_PER_DAY 
 									 * convert2days($row['task_duration'], 
 													$row['task_duration_type']));
-			$row['task_end_date'] = mb_substr(db_unix2dateTime($start_date_unix_time), 1, -1);
+			$row['task_end_date'] = substr(db_unix2dateTime($start_date_unix_time), 1, -1);
 		} else {
 			$row['task_end_date'] = $p_end_date;
 		}
@@ -206,13 +196,22 @@ $graph->ShowHeaders(GANTT_HYEAR | GANTT_HMONTH | GANTT_HDAY | GANTT_HWEEK);
 
 $graph->SetFrame(false);
 $graph->SetBox(true, array(0,0,0), 2);
+$graph->scale->week->SetFont(FF_CUSTOM, FS_NORMAL, 8);
 $graph->scale->week->SetStyle(WEEKSTYLE_FIRSTDAY);
+$graph->scale->year->SetFont(FF_CUSTOM, FS_NORMAL, 8);
+$graph->scale->month->SetFont(FF_CUSTOM, FS_NORMAL, 8);
+$graph->scale->day->SetFont(FF_CUSTOM, FS_NORMAL, 8);
+$graph->scale->day->SetStyle(DAYSTYLE_SHORT);
 //$graph->scale->day->SetStyle(DAYSTYLE_SHORTDATE2);
 
 $pLocale = setlocale(LC_TIME, 0); // get current locale for LC_TIME
-$res = @setlocale(LC_TIME, $AppUI->user_lang[0]);
+$res = @setlocale(LC_TIME, $AppUI->user_lang[2]);
 if ($res) { // Setting locale doesn't fail
-	$graph->scale->SetDateLocale($AppUI->user_lang[0]);
+	if ($AppUI->user_locale == 'ja') {
+		$graph->scale->SetDateLocale('ja_JP.UTF-8');
+	} else {
+		$graph->scale->SetDateLocale($AppUI->user_lang[2]);
+	}
 }
 setlocale(LC_TIME, $pLocale);
 
@@ -231,7 +230,7 @@ if ($caller == 'todo') {
 	                                            : $AppUI->_('Dur.', UI_OUTPUT_RAW)), 
 	                                           $AppUI->_('Start', UI_OUTPUT_RAW), 
 	                                           $AppUI->_('Finish', UI_OUTPUT_RAW)), 
-	                                     array(180, 50, 60, 60, 60));
+	                                     array(150, 60, 60, 75, 75));
 } else {
 	$graph->scale->actinfo->SetColTitles(array($AppUI->_('Task name', UI_OUTPUT_RAW), 
 	                                           (($showWork == '1') 
@@ -239,7 +238,7 @@ if ($caller == 'todo') {
 	                                            : $AppUI->_('Dur.', UI_OUTPUT_RAW)), 
 	                                           $AppUI->_('Start', UI_OUTPUT_RAW), 
 	                                           $AppUI->_('Finish', UI_OUTPUT_RAW)), 
-	                                     array(230, 60, 60, 60));
+	                                     array(190, 70, 75, 75));
 }
 $graph->scale->tableTitle->Set($projects[$project_id]['project_name']);
 
@@ -256,7 +255,7 @@ $graph->scale->tableTitle->Show(true);
 // if diff(end_date,start_date) > 240 days it shows only
 //month number
 //-----------------------------------------
-if ($start_date && $end_date) {
+if ($start_date && $end_date){
 	$min_d_start = new CDate($start_date);
 	$max_d_end = new CDate($end_date);
 	$graph->SetDateRange($start_date, $end_date);
@@ -264,22 +263,22 @@ if ($start_date && $end_date) {
 	// find out DateRange from gant_arr
 	$d_start = new CDate();
 	$d_end = new CDate();
-	for ($i = 0; $i < count(@$gantt_arr); $i++) {
+	for($i = 0; $i < count(@$gantt_arr); $i++){
 		$a = $gantt_arr[$i][0];
-		$start = mb_substr($a['task_start_date'], 0, 10);
-		$end = mb_substr($a['task_end_date'], 0, 10);
+		$start = substr($a['task_start_date'], 0, 10);
+		$end = substr($a['task_end_date'], 0, 10);
 		
 		$d_start->Date($start);
 		$d_end->Date($end);
 		
-		if ($i == 0) {
+		if ($i == 0){
 			$min_d_start = $d_start;
 			$max_d_end = $d_end;
 		} else {
 			if (Date::compare($min_d_start,$d_start) > 0) {
 				$min_d_start = $d_start;
 			}
-			if (Date::compare($max_d_end,$d_end) < 0) {
+			if (Date::compare($max_d_end,$d_end) < 0){
 				$max_d_end = $d_end;
 			}
 		}
@@ -287,7 +286,7 @@ if ($start_date && $end_date) {
 }
 
 // check day_diff and modify Headers
-$day_diff = $max_d_end->dateDiff($min_d_start);
+$day_diff = $min_d_start->dateDiff($max_d_end);
 
 if ($day_diff > 240) {
 	//more than 240 days
@@ -295,6 +294,7 @@ if ($day_diff > 240) {
 } else if ($day_diff > 90) {
 	//more than 90 days and less of 241
 	$graph->ShowHeaders(GANTT_HYEAR | GANTT_HMONTH | GANTT_HWEEK);
+	$graph->scale->week->SetFont(FF_CUSTOM, FS_NORMAL, 8);
 	$graph->scale->week->SetStyle(WEEKSTYLE_WNBR);
 }
 
@@ -315,7 +315,7 @@ function findgchild(&$tarr, $parent, $level=0) {
 	$n = count($tarr);
 	for ($x=0; $x < $n; $x++) {
 		if ($tarr[$x]['task_parent'] == $parent 
-		    && $tarr[$x]['task_parent'] != $tarr[$x]['task_id']) {
+		    && $tarr[$x]['task_parent'] != $tarr[$x]['task_id']){
 			showgtask($tarr[$x], $level);
 			findgchild($tarr, $tarr[$x]['task_id'], $level);
 		}
@@ -350,7 +350,7 @@ foreach ($projects as $p) {
 $hide_task_groups = false;
 
 if ($hide_task_groups) {
-	for ($i = 0; $i < count($gantt_arr); $i ++) {
+	for($i = 0; $i < count($gantt_arr); $i ++) {
 		// remove task groups
 		if ($i != count($gantt_arr)-1 && $gantt_arr[$i + 1][1] > $gantt_arr[$i][1]) {
 			// it's not a leaf => remove
@@ -361,17 +361,18 @@ if ($hide_task_groups) {
 }
 
 $row = 0;
-for ($i = 0; $i < count(@$gantt_arr); $i ++) {
+for($i = 0; $i < count(@$gantt_arr); $i ++) {
 	$a = $gantt_arr[$i][0];
 	$level = $gantt_arr[$i][1];
 	if ($hide_task_groups) { 
 		$level = 0;
 	}
 	$name = $a['task_name'];
-	if ($locale_char_set=='utf-8' && function_exists('utf8_decode')) {
-		$name = utf8_decode($name);
-	}
-	$name = ((mb_strlen($name) > 34) ? (mb_substr($name, 0, 33) . '.') : $name);
+	//if ($locale_char_set=='utf-8' && function_exists('utf8_decode')) {
+	//	$name = utf8_decode($name);
+	//}
+	$name = mb_convert_encoding($name, 'UTF-8', 'auto');
+	$name = ((strlen($name) > 34) ? (substr($name, 0, 33) . '.') : $name);
 	$name = (str_repeat(' ', $level) . $name);
 	
 	if ($caller == 'todo') {
@@ -384,8 +385,8 @@ for ($i = 0; $i < count(@$gantt_arr); $i ++) {
 				$pname = utf8_decode($pname);
 			}
 		} else {
-			$pname = ((mb_strlen($pname) > 14) 
-			          ? (mb_substr($pname, 0, 5) . '...' . mb_substr($pname, -5, 5)) : $pname);
+			$pname = ((strlen($pname) > 14) 
+			          ? (substr($pname, 0, 5) . '...' . substr($pname, -5, 5)) : $pname);
 		}
 	}
 	//using new jpGraph determines using Date object instead of string
@@ -406,7 +407,7 @@ for ($i = 0; $i < count(@$gantt_arr); $i ++) {
 	$flags	= (($a['task_milestone']) ? 'm' : '');
 	
 	$cap = '';
-	if (!$start || $start == '0000-00-00') {
+	if (!$start || $start == '0000-00-00'){
 		$start = ((!$end) ? date('Y-m-d') : $end);
 		$cap .= '(no start date)';
 	}
@@ -433,7 +434,7 @@ for ($i = 0; $i < count(@$gantt_arr); $i ++) {
 			}
 		}
 		$q->clear();
-		$caption = mb_substr($caption, 0, (mb_strlen($caption) - 1));
+		$caption = substr($caption, 0, (strlen($caption) - 1));
 	}
 	
 	if ($flags == 'm') {
@@ -500,7 +501,7 @@ for ($i = 0; $i < count(@$gantt_arr); $i ++) {
 		$bar->progress->Set(min(($progress/100),1));
 		$bar->title->SetFont(FF_CUSTOM, FS_NORMAL, 8);
 		
-		if ($a['task_dynamic'] == 1) {
+		if ($a['task_dynamic'] == 1){
 			$bar->title->SetFont(FF_CUSTOM,FS_BOLD, 8);
 			$bar->rightMark->Show();
 			$bar->rightMark->SetType(MARK_RIGHTTRIANGLE);

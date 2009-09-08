@@ -1,8 +1,9 @@
-<?php  // $Id$
-if (!defined('DP_BASE_DIR')) {
+<?php  // $Id: organize.php 5730 2008-06-06 18:44:57Z merlinyoda $
+if (!defined('DP_BASE_DIR')){
   die('You should not access this file directly.');
 }
 
+$perms =& $AppUI->acl();
 
 $project_id = intval(dPgetParam($_GET, 'project_id', 0));
 //$date = intval(dPgetParam($_GET, 'date', ''));
@@ -11,10 +12,10 @@ $no_modify = false;
 
 $sort = dPgetParam($_REQUEST, 'sort', 'task_end_date');
 
-if (getPermission('admin', 'view')) { 
+if ($perms->checkModule('admin', 'view')){ 
 	$other_users = true;
 	//lets see if the user wants to see anothers user mytodo
-	if (($show_uid = dPgetParam($_REQUEST, 'show_user_todo', 0)) != 0) { 
+	if (($show_uid = dPgetParam($_REQUEST, 'show_user_todo', 0)) != 0){ 
 		$user_id = $show_uid;
 		$no_modify = true;
 		$AppUI->setState('user_id', $user_id);
@@ -24,7 +25,7 @@ if (getPermission('admin', 'view')) {
 }
 
 // check permissions
-$canEdit = getPermission($m, 'edit');
+$canEdit = $perms->checkModule($m, 'edit');
 
 // if task priority set and items selected, do some work
 $action = dPgetParam($_POST, 'action', 99);
@@ -35,7 +36,7 @@ if ($selected && count($selected)) {
 	$new_project = dPgetParam($_POST, 'new_project', $project_id);
 	
 	foreach ($selected as $key => $val) {
-		$t = &new CTask();
+		$t = new CTask();
 		$t->load($val);
 		if (isset($_POST['include_children']) && $_POST['include_children']) {
 			$children = $t->getDeepChildren();
@@ -43,14 +44,14 @@ if ($selected && count($selected)) {
 		
 		if ($action == 'f') {
 			//mark task as completed
-			if (getPermission('tasks', 'edit', $t->task_id)) {
+			if ($perms->checkModuleItem('tasks', 'edit', $t->task_id)) {
 				$t->task_percent_complete = 100;
 				$t->store();
 			}
 			if (isset($children)) {
 				foreach ($children as $child_id) {
-					if (getPermission('tasks', 'edit', $child_t->task_id)) {
-						$child_t = &new CTask();
+					if ($perms->checkModuleItem('tasks', 'edit', $child_t->task_id)) {
+						$child_t = new CTask();
 						$child_t->load($child_id);
 						$child_t->task_percent_complete = 100;
 						$child_t->store();
@@ -64,7 +65,7 @@ if ($selected && count($selected)) {
 			/*
 			//delete children
 			if (isset($children)) {
-				foreach ($children as $child) {
+				foreach($children as $child) {
 					$t->load($child);
 					$t->delete();
 				}
@@ -92,7 +93,7 @@ if ($selected && count($selected)) {
 			$t->store();
 			if (isset($children)) {
 				foreach ($children as $child_id) {
-					$child_t = &new CTask();
+					$child_t = new CTask();
 					$child_t->load($child_id);
 					$child_t->task_priority = $action;
 					$child_t->store();
@@ -104,8 +105,8 @@ if ($selected && count($selected)) {
 
 $AppUI->savePlace();
 
-$proj =& new CProject;
-$tobj =& new CTask;
+$proj = new CProject;
+$tobj = new CTask;
 $q = new DBQuery;
 
 $allowedProjects = $proj->getAllowedSQL($AppUI->user_id, 'p.project_id');
@@ -157,9 +158,10 @@ function showchildren($id, $level=1) {
  * show a task - at a sublevel
  */
 function showtask_edit($task, $level=0) {
-	global $AppUI, $durnTypes, $now, $df;
+	global $AppUI, $perms, $durnTypes, $now, $df;
 	
 	$style = '';
+	$sign = 1;
 	$start = intval(@$task['task_start_date']) ? new CDate($task['task_start_date']) : null;
 	$end = intval(@$task['task_end_date']) ? new CDate($task['task_end_date']) : null;
 	
@@ -175,10 +177,11 @@ function showtask_edit($task, $level=0) {
 	}
 
 	if ($now->after($end)) {
+		$sign = -1;
 		$style = (($end) ? 'background-color:#cc6666;color:#ffffff' 
 		          : 'background-color:lightgray;');
 	} 
-	$days = (($start) ? ($end->dateDiff($now)) : 0);
+	$days = (($start) ? ($now->dateDiff($end) * $sign) : 0);
 	
 	if ($task['task_percent_complete'] == 100) {
 		$days = 'n/a';
@@ -188,7 +191,7 @@ function showtask_edit($task, $level=0) {
 <tr>
 	<td>
 <?php 
-	if (getPermission('tasks', 'edit', $task['task_id'])) { 
+	if ($perms->checkModuleItem('tasks', 'edit', $task['task_id'])) { 
 ?>
 		<a href="./index.php?m=tasks&a=addedit&task_id=<?php echo $task['task_id']; ?>">
 		<img src="./images/icons/pencil.gif" alt="Edit Task" border="0" width="12" height="12">
@@ -288,7 +291,7 @@ if ($canEdit) {
 	$actions['m'] = $AppUI->_('Move', UI_OUTPUT_JS);
 	$actions['d'] = $AppUI->_('Delete', UI_OUTPUT_JS);
 	$actions['f'] = $AppUI->_('Mark as Finished', UI_OUTPUT_JS);
-	foreach ($priorities as $k => $v) {
+	foreach($priorities as $k => $v) {
 		$actions[$k] = $AppUI->_('set priority to ' . $v, UI_OUTPUT_JS);
 	}
 }
@@ -301,7 +304,7 @@ if ($deny) {
 $sql .= ' ORDER BY p.project_name';
 $projects = db_loadHashList($sql, 'project_id');
 $p[0] = $AppUI->_('[none]');
-foreach ($projects as $proj) {
+foreach($projects as $proj) {
 	$p[$proj[0]] = $proj[1];
 }
 if ($project_id) {
@@ -312,7 +315,7 @@ natsort($p);
 $projects =  $p;
 
 $ts[0] = $AppUI->_('[top task]');
-foreach ($tasks as $t) {
+foreach($tasks as $t) {
 	$ts[$t['task_id']] = $t['task_name'];
 }
 ?>

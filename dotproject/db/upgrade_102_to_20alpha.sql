@@ -1,4 +1,4 @@
-# $Id$
+# $Id: upgrade_102_to_20alpha.sql 4844 2007-03-17 18:52:57Z caseydk $
 #
 # Upgrade dotProject DB Schema
 # From Version 1.0.2 to Current CVS Version

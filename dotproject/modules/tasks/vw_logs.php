@@ -1,11 +1,12 @@
-<?php /* TASKS $Id$ */
-if (!defined('DP_BASE_DIR')) {
+<?php /* TASKS $Id: vw_logs.php 5744 2008-06-19 16:35:16Z merlinyoda $ */
+if (!defined('DP_BASE_DIR')){
   die('You should not access this file directly.');
 }
 
 global $AppUI, $task_id, $df, $m;
 
-if (!(getPermission('task_log', 'access'))) {
+$perms =& $AppUI->acl();
+if (! $perms->checkModuleItem('task_log', 'view', $task_id)) {
 	$AppUI->redirect('m=public&a=access_denied');
 }
 
@@ -20,9 +21,8 @@ $taskLogReferenceImage = dPgetSysVal('TaskLogReferenceImage');
 // security improvement:
 // some javascript functions may not appear on client side in case of user not having write permissions
 // else users would be able to arbitrarily run 'bad' functions
-$canView = getPermission('task_log', 'view');
-$canEdit = getPermission('task_log', 'edit');
-$canDelete = getPermission('task_log', 'delete');
+$canDelete = $perms->checkModuleItem('task_log', 'delete', $task_id);
+$canEdit = $perms->checkModuleItem('task_log', 'edit', $task_id);
 
 if ($canDelete) {
 ?>
@@ -62,7 +62,7 @@ $sql = ('SELECT tl.*, u.user_username, bc.billingcode_name as task_log_costcode'
         . ' LEFT JOIN users AS u ON u.user_id = tl.task_log_creator'
         . ' WHERE task_log_task = ' . $task_id . (($problem) ? ' AND task_log_problem > 0' : '') 
         . ' ORDER BY tl.task_log_date');
-$logs = (($canView) ? db_loadList($sql) : array());
+$logs = db_loadList($sql);
 
 $s = '';
 $hrs = 0;
@@ -74,9 +74,9 @@ foreach ($logs as $row) {
 	$s .= "\n\t<td>";
 	if ($canEdit) {
 		$s .= ("\n\t\t" . '<a href="?m=tasks&a=view&task_id=' . $task_id . '&tab=' 
-		       . (($tab == -1) ? $AppUI->getState('TaskLogVwTab') : '1') 
-		       . '&task_log_id='.@$row['task_log_id'].'#log">' . "\n\t\t\t" 
-		       . dPshowImage('./images/icons/stock_edit-16.png', 16, 16, ''). "\n\t\t</a>");
+			   . (($tab == -1) ? $AppUI->getState('TaskLogVwTab') : '1') 
+			   . '&task_log_id='.@$row['task_log_id'].'#log">' . "\n\t\t\t" 
+			   . dPshowImage('./images/icons/stock_edit-16.png', 16, 16, ''). "\n\t\t</a>");
 	}
 	$s .= "\n\t</td>";
 	$s .= '<td nowrap="nowrap">' . (($task_log_date) ? $task_log_date->format($df) : '-') . '</td>';
@@ -87,12 +87,12 @@ foreach ($logs as $row) {
 	       . '</td>');
 	*/
 	$reference_image = '-';
-	if ($row['task_log_reference'] > 0) {
+	if($row['task_log_reference'] > 0){
 		if (isset($taskLogReferenceImage[$row['task_log_reference']])) {
 			$reference_image = dPshowImage($taskLogReferenceImage[$row['task_log_reference']], 16, 
 			                               16, $taskLogReference[$row['task_log_reference']], 
 										   $taskLogReference[$row['task_log_reference']]);
-		} else if (isset($taskLogReference[$row['task_log_reference']])) {
+		} else if (isset($taskLogReference[$row['task_log_reference']])){
 			$reference_image = $taskLogReference[$row['task_log_reference']];
 		}
 	}
@@ -105,7 +105,7 @@ foreach ($logs as $row) {
 	$s .= '<td width="100">' . $row['user_username'] . '</td>';
 	$s .= '<td width="100" align="right">' . sprintf('%.2f', $row['task_log_hours']) . '<br />(';
 	$minutes = (int) (($row['task_log_hours'] - ((int) $row['task_log_hours'])) * 60);
-	$minutes = ((mb_strlen($minutes) == 1) ? ('0' . $minutes) : $minutes);
+	$minutes = ((strlen($minutes) == 1) ? ('0' . $minutes) : $minutes);
 	$s .= (int) $row['task_log_hours'] . ':' . $minutes . ')</td>';
 	$s .= '<td width="100">' . $row['task_log_costcode'] . '</td>';
 	$s .= '<td><a name="tasklog' . @$row['task_log_id'] . '"></a>';
@@ -113,13 +113,13 @@ foreach ($logs as $row) {
 // dylan_cuthbert: auto-transation system in-progress, leave these lines
 	$transbrk = "\n[translation]\n";
 	$descrip = str_replace("\n", '<br />', $row['task_log_description']);
-	$tranpos = mb_strpos($descrip, str_replace("\n", '<br />', $transbrk));
+	$tranpos = strpos($descrip, str_replace("\n", '<br />', $transbrk));
 	if ($tranpos === false) {
 		$s .= $descrip;
 	} else {
-		$descrip = mb_substr($descrip, 0, $tranpos);
-		$tranpos = mb_strpos($row['task_log_description'], $transbrk);
-		$transla = mb_substr($row['task_log_description'], $tranpos + mb_strlen($transbrk));
+		$descrip = substr($descrip, 0, $tranpos);
+		$tranpos = strpos($row['task_log_description'], $transbrk);
+		$transla = substr($row['task_log_description'], $tranpos + strlen($transbrk));
 		$transla = trim(str_replace("'", '"', $transla));
 		$s .= ($descrip.'<div style="font-weight: bold; text-align: right"><a title="' . $transla 
 		       . '" class="hilite">["' . $AppUI->_('translation') . '"]</a></div>');
@@ -142,7 +142,7 @@ $s .= '<td colspan="6" align="right">' . $AppUI->_('Total Hours') . ' =</td>';
 $s .= '<td align="right">' . sprintf("%.2f", $hrs) . '</td>';
 $s .= ('<td align="right" colspan="3"><form action="?m=tasks&a=view&tab=1&task_id=' 
        . $task_id . '" method="post">');
-if (getPermission('tasks', 'edit', $task_id)) {
+if ($perms->checkModuleItem('tasks', 'edit', $task_id)) {
 	$s .= ('<input type="submit" class="button" value="' . $AppUI->_('new log') 
 	       . '"></form></td>');
 }

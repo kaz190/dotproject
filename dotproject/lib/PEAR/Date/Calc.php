@@ -42,14 +42,11 @@ class Date_Calc
      *
      * @return string the current date in specified format
      */
-    
-    function dateNow($format="%Y%m%d") { //dotProject-modified function
-        global $locale_char_set;
-        $now_date = strftime($format,time());
-        if ($locale_char_set != 'iso-8859-1') {
-            $now_date = mb_convert_encoding($now_date, $locale_char_set, 'iso-8859-1');
-        }
-        return $now_date;
+
+    function dateNow($format="%Y%m%d")
+    {
+        return(strftime($format,time()));
+
     } // end func dateNow
 
      /**
@@ -748,8 +745,8 @@ class Date_Calc
         if(!Date_Calc::isValidDate($day2,$month2,$year2))
             return -1;
 
-        return(((Date_Calc::dateToDays($day1,$month1,$year1))
-                 - (Date_Calc::dateToDays($day2,$month2,$year2))));
+        return(abs((Date_Calc::dateToDays($day1,$month1,$year1))
+                    - (Date_Calc::dateToDays($day2,$month2,$year2))));
 
     } // end func dateDiff
 
@@ -1579,17 +1576,13 @@ class Date_Calc
     *
     * @returns array An array of month names
     */
-    function getMonthNames() { // dotProject-modified function
+    function getMonthNames()
+    {
 	global $Date_Calc_months;
-    global $locale_char_set; 
 	if (!(isset($Date_Calc_months))) {
 		$Date_Calc_months = array();
 		for($i=1;$i<13;$i++){
 		    $Date_Calc_months[$i] = strftime('%B', mktime(0, 0, 0, $i, 1, 2001));
-            if ($locale_char_set != 'iso-8859-1') {
-                $Date_Calc_months[$i] = mb_convert_encoding($Date_Calc_months[$i], 
-                                                            $locale_char_set, 'iso-8859-1');
-            }
 		}
 	}
         return($Date_Calc_months);
@@ -1607,16 +1600,11 @@ class Date_Calc
     function getWeekDays()
     {
 	global $Date_Calc_weekdays;
-    global $locale_char_set;
 	if (!(isset($Date_Calc_weekdays))) {
 		$Date_Calc_weekdays = array();
-        $now_date = strftime($format,time());
+        
 		for($i=0;$i<7;$i++){
 		    $Date_Calc_weekdays[$i] = strftime('%A', mktime(0, 0, 0, 1, $i, 2001));
-            if ($locale_char_set != 'iso-8859-1') {
-                $Date_Calc_weekdays[$i] = mb_convert_encoding($Date_Calc_weekdays[$i], 
-                                                              $locale_char_set, 'iso-8859-1');
-            }
 		}
 	}
         return($Date_Calc_weekdays);

@@ -1,33 +1,39 @@
-<?php /* ADMIN $Id$ */
-if (!defined('DP_BASE_DIR')) {
+<?php /* ADMIN $Id: do_userrole_aed.php 5722 2008-05-31 02:25:52Z ajdonnison $ */
+if (!defined('DP_BASE_DIR')){
   die('You should not access this file directly.');
 }
 
-$del = dPgetParam($_POST, 'del', false);
-$role_id = dPgetParam($_POST, 'role_id', 0);
-$user_id = dPgetParam($_POST, 'user_id', 0);
-$user_role = dPgetParam($_POST, 'user_role', 0);
+$del = isset($_REQUEST['del']) ? $_REQUEST['del'] : FALSE;
 
-if (!(getPermission($m, 'edit', $user_id))) {
-	$AppUI->redirect('m=public&a=access_denied');
-}
+$perms =& $AppUI->acl();
 
 // prepare (and translate) the module name ready for the suffix
-$AppUI->setMsg('Role');
-$perms =& $AppUI->acl();
+$AppUI->setMsg( 'Roles' );
+
 if ($del) {
-	if ($perms->deleteUserRole($role_id, $user_id)) {
-		$AppUI->setMsg('deleted', UI_MSG_ALERT, true);
-	} else {
-		$AppUI->setMsg('failed to delete role', UI_MSG_ERROR);
+	if (!$perms->checkModule($m, 'delete')) {
+		$AppUI->redirect('m=public&a=access_denied');
 	}
-} else if ($user_role) {
-	if ($perms->insertUserRole($user_role, $user_id)) {
-		$AppUI->setMsg('added', UI_MSG_OK, true);
+	if ($perms->deleteUserRole($_REQUEST['role_id'], $_REQUEST['user_id'])) {
+		$AppUI->setMsg( "deleted", UI_MSG_ALERT, true );
+		$AppUI->redirect();
 	} else {
-		$AppUI->setMsg('failed to add role', UI_MSG_ERROR);
+		$AppUI->setMsg( "failed to delete role", UI_MSG_ERROR );
+		$AppUI->redirect();
+	}
+	return;
+}
+
+if (isset($_REQUEST['user_role']) && $_REQUEST['user_role']) {
+	if (! $perms->checkModule($m, 'edit') || ! $perms->checkModule($m, 'add')) {
+		$AppUI->redirect('m=public&a=access_denied');
+	}
+	if ( $perms->insertUserRole($_REQUEST['user_role'], $_REQUEST['user_id'])) {
+		$AppUI->setMsg( "added", UI_MSG_ALERT, true );
+		$AppUI->redirect();
+	} else {
+		$AppUI->setMsg( "failed to add role", UI_MSG_ERROR );
+		$AppUI->redirect();
 	}
 }
-$AppUI->redirect();
-
 ?>

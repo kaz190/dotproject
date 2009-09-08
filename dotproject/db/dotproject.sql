@@ -449,16 +449,24 @@ CREATE TABLE `user_preferences` (
 #
 
 INSERT INTO `users` VALUES (1,1,'admin',MD5('passwd'),0,1,0,0,0,'');
+# **Itsutsubashi@K.Sen-20090803
 INSERT INTO `contacts` (contact_id, contact_first_name, contact_last_name, contact_email) 
-  VALUES (1,'Admin','Person','admin@localhost');
+  VALUES (1,'Admin','システム管理者','admin@localhost');
 
 INSERT INTO `permissions` VALUES (1,1,"all",-1, -1);
 
-INSERT INTO `user_preferences` VALUES("0", "LOCALE", "en");
+
+#INSERT INTO `user_preferences` VALUES("0", "LOCALE", "ja");
+INSERT INTO `user_preferences` VALUES("0", "LOCALE", "ja_JP"); # **Itsutsubashi@K.Sen-20090803
 INSERT INTO `user_preferences` VALUES("0", "TABVIEW", "0");
-INSERT INTO `user_preferences` VALUES("0", "SHDATEFORMAT", "%d/%m/%Y");
-INSERT INTO `user_preferences` VALUES("0", "TIMEFORMAT", "%I:%M %p");
-INSERT INTO `user_preferences` VALUES("0", "UISTYLE", "default");
+#INSERT INTO `user_preferences` VALUES("0", "SHDATEFORMAT", "%d/%m/%Y");
+INSERT INTO `user_preferences` VALUES("0", "SHDATEFORMAT", "%Y/%m/%d");# **Itsutsubashi@K.Sen-20090803
+INSERT INTO `user_preferences` VALUES("0", "TIMEFORMAT", "%H:%M");
+
+INSERT INTO `user_preferences` VALUES("0", "CURRENCYFORM", "ja_JP");# **Itsutsubashi@K.Sen-20090803
+
+#INSERT INTO `user_preferences` VALUES("0", "UISTYLE", "default");
+INSERT INTO `user_preferences` VALUES("0", "UISTYLE", "dp-grey-theme");# **Itsutsubashi@K.Sen-20090803
 INSERT INTO `user_preferences` VALUES("0", "TASKASSIGNMAX", "100");
 INSERT INTO `user_preferences` VALUES("0", "USERFORMAT", "user");
 
@@ -660,12 +668,17 @@ CREATE TABLE `config` (
 
 INSERT INTO `config` VALUES (0, 'host_locale', 'en', '', 'text');
 INSERT INTO `config` VALUES (0, 'check_overallocation', 'false', '', 'checkbox');
-INSERT INTO `config` VALUES (0, 'currency_symbol', '$', '', 'text');
-INSERT INTO `config` VALUES (0, 'host_style', 'default', '', 'text');
-INSERT INTO `config` VALUES (0, 'company_name', 'My Company', '', 'text');
-INSERT INTO `config` VALUES (0, 'page_title', 'dotProject', '', 'text');
-INSERT INTO `config` VALUES (0, 'site_domain', 'dotproject.net', '', 'text');
-INSERT INTO `config` VALUES (0, 'email_prefix', '[dotProject]', '', 'text');
+
+# **Start Itsutsubashi@K.Sen-20090803
+INSERT INTO `config` VALUES (0, 'currency_symbol', '￥', '', 'text');
+INSERT INTO `config` VALUES (0, 'host_style', 'classic', '', 'text');
+INSERT INTO `config` VALUES (0, 'company_name', '会社名', '', 'text');
+INSERT INTO `config` VALUES (0, 'page_title', '日本語版@dotProject', '', 'text');
+INSERT INTO `config` VALUES (0, 'site_domain', 'itsutsubashi.com', '', 'text');
+INSERT INTO `config` VALUES (0, 'email_prefix', '[日本語版@dotProject]', '', 'text');
+
+# **End Itsutsubashi@K.Sen-20090803
+
 INSERT INTO `config` VALUES (0, 'admin_username', 'admin', '', 'text');
 INSERT INTO `config` VALUES (0, 'username_min_len', '4', '', 'text');
 INSERT INTO `config` VALUES (0, 'password_min_len', '4', '', 'text');

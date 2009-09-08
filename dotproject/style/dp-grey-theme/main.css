@@ -31,6 +31,7 @@ em {
 	font-weight: bold;
 	text-decoration: none;
 	font-style: normal;
+	color: #666;
 }
 
 A:link {
@@ -142,7 +143,7 @@ TD.nav {
 
 TR.nav {
 	background: url("images/lines_title_bar.gif");
-	height: 20px;
+	height: 30px;
 	color: #000;
 }
 
@@ -225,7 +226,7 @@ table.std TH {
 	font: 13px verdana, arial, helvetica, sans-serif;
 	font-weight: bold;
 	text-align: center;
-	color: black;
+	color: grey;
 	margin-bottom: 0;
 	padding: 1px 1px 1px 1px;
 	list-style-type: disc;

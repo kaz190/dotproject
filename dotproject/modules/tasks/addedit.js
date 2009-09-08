@@ -1,4 +1,4 @@
-// $Id$
+// $Id: addedit.js 5681 2008-04-18 23:45:55Z merlinyoda $
 var calendarField = '';
 var calWin = null;
 

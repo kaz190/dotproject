@@ -1,5 +1,5 @@
 #
-# $Id$
+# $Id: upgrade_20_to_201.sql 4844 2007-03-17 18:52:57Z caseydk $
 # 
 # DO NOT USE THIS SCRIPT DIRECTLY - USE THE INSTALLER INSTEAD.
 #

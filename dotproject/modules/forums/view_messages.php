@@ -20,10 +20,14 @@ $q->addOrder("message_date $sort");
 
 $messages = $q->loadList();
 
+//20090907 KSen@Itsutsubashi
+$project_name = $forum["project_name"];
+$forum_name = $forum["forum_name"];
+
 $crumbs = array();
 $crumbs['?m=forums'] = "forums list";
 $crumbs["?m=forums&a=viewer&forum_id=$forum_id"] = "topics for this forum";
-$crumbs["?m=forums&a=view_pdf&forum_id=$forum_id&message_id=$message_id&sort=$sort&suppressHeaders=1"] = "view PDF file";
+$crumbs["?m=forums&a=view_pdf&project_name=$project_name&forum_name=$forum_name&forum_id=$forum_id&message_id=$message_id&sort=$sort&suppressHeaders=1"] = "view PDF file";
 ?>
 <script language="javascript">
 <?php
